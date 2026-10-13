@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
+import pg from "pg";
 
 dotenv.config({ quiet: true });
 
@@ -14,6 +15,7 @@ if (!databaseUrl) {
 const sslEnabled = process.env.DB_SSL === "true" || Boolean(databaseUrl?.includes("sslmode=require"));
 const options = {
   dialect: "postgres",
+  dialectModule: pg,
   logging: false,
   pool: {
     max: Number(process.env.DB_POOL_MAX || 5),

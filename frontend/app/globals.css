@@ -1,0 +1,266 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+:root {
+  color-scheme: light;
+  --trello-blue: #0c66e4;
+  --trello-blue-hover: #0055cc;
+  --trello-blue-soft: #e9f2ff;
+  --trello-ink: #172b4d;
+  --trello-ink-subtle: #44546f;
+  --trello-surface: #ffffff;
+  --trello-canvas: #f7f8f9;
+  --trello-border: #dcdfe4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+  }
+
+  :root:not(.light) body {
+    background: #1d1f21;
+    color: #b6c2cf;
+  }
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+:root.light {
+  color-scheme: light;
+}
+
+:root.dark body {
+  background: #1d1f21;
+  color: #b6c2cf;
+}
+
+.card-aging-enabled [data-aged="true"] {
+  filter: saturate(0.55);
+  opacity: 0.58;
+}
+
+.card-aging-enabled [data-aged="true"]:hover,
+.card-aging-enabled [data-aged="true"]:focus-within {
+  filter: none;
+  opacity: 1;
+}
+
+/* ── Page entrance animation ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes kanveroLogoTop {
+  0%, 8% { opacity: 0; transform: translate(-14px, -8px); }
+  25%, 82% { opacity: 0.86; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(5px, 0); }
+}
+
+@keyframes kanveroLogoCenter {
+  0%, 13% { opacity: 0; transform: scale(0.82); }
+  32%, 82% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+
+@keyframes kanveroLogoBottom {
+  0%, 19% { opacity: 0; transform: translate(-14px, 8px); }
+  38%, 82% { opacity: 0.86; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(5px, 0); }
+}
+
+@keyframes kanveroLogoWord {
+  0%, 28% { opacity: 0; transform: translateX(-10px); }
+  48%, 82% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(7px); }
+}
+
+@keyframes kanveroLoaderProgress {
+  from { transform: translateX(-115%); }
+  to { transform: translateX(215%); }
+}
+
+.kanvero-logo-piece,
+.kanvero-logo-word {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.kanvero-logo-top {
+  animation: kanveroLogoTop 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.kanvero-logo-center {
+  animation: kanveroLogoCenter 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.kanvero-logo-bottom {
+  animation: kanveroLogoBottom 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.kanvero-logo-word {
+  animation: kanveroLogoWord 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.kanvero-loader-bar {
+  animation: kanveroLoaderProgress 0.85s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kanvero-logo-piece,
+  .kanvero-logo-word,
+  .kanvero-loader-bar {
+    animation: none;
+  }
+}
+
+/* ── Utility animation classes ── */
+.animate-page {
+  animation: fadeInUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade {
+  animation: fadeIn 0.25s ease both;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-scale {
+  animation: scaleIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger children with nth-child delays */
+.stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.stagger > *:nth-child(2)  { animation-delay: 50ms; }
+.stagger > *:nth-child(3)  { animation-delay: 100ms; }
+.stagger > *:nth-child(4)  { animation-delay: 150ms; }
+.stagger > *:nth-child(5)  { animation-delay: 200ms; }
+.stagger > *:nth-child(6)  { animation-delay: 250ms; }
+.stagger > *:nth-child(7)  { animation-delay: 300ms; }
+.stagger > *:nth-child(8)  { animation-delay: 350ms; }
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus visible ring */
+:focus-visible {
+  outline: 2px solid var(--trello-blue);
+  outline-offset: 2px;
+}
+
+.board-scrollbar {
+  scrollbar-color: rgba(255, 255, 255, 0.48) transparent;
+  scrollbar-width: thin;
+}
+
+.board-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.board-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.board-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.48);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.board-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.68);
+  background-clip: padding-box;
+}
+
+.board-list-scrollbar {
+  scrollbar-width: none;
+}
+
+.board-list-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Board controls contain many compact nested editors. Keep their dark palette
+   consistent without changing the board background or light theme. */
+.dark .board-theme :is(section, div, form, article, nav)[class~="bg-white"],
+.dark [role="dialog"][class~="bg-white"],
+.dark [role="alertdialog"][class~="bg-white"],
+.dark [role="menu"][class~="bg-white"] {
+  background-color: #22272b !important;
+  border-color: #454f59 !important;
+  color: #f1f2f4 !important;
+}
+
+.dark .board-theme :is(input, textarea, select)[class~="bg-white"],
+.dark [role="dialog"] :is(input, textarea, select)[class~="bg-white"],
+.dark [role="alertdialog"] :is(input, textarea, select)[class~="bg-white"] {
+  background-color: #1d2125 !important;
+  border-color: #626f86 !important;
+  color: #f1f2f4 !important;
+}
+
+.dark .board-theme [class~="text-[#172b4d]"],
+.dark [role="dialog"] [class~="text-[#172b4d]"],
+.dark [role="alertdialog"] [class~="text-[#172b4d]"] {
+  color: #f1f2f4 !important;
+}
+
+.dark .board-theme [class~="text-[#44546f]"],
+.dark .board-theme [class~="text-[#626f86]"],
+.dark [role="dialog"] [class~="text-[#44546f]"],
+.dark [role="dialog"] [class~="text-[#626f86]"] {
+  color: #b6c2cf !important;
+}

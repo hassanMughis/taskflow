@@ -1,9 +1,8 @@
 # Kanvero free deployment
 
-This deployment uses three non-trial free plans:
+This deployment uses two non-trial free plans:
 
-- Vercel Hobby for `frontend/`
-- Render Free Web Service for `backend/`
+- Vercel Hobby for `frontend/` and `backend/` as separate projects
 - Neon Free for PostgreSQL
 
 Free plans have quotas and sleeping/pausing behavior. They are suitable for a portfolio or demonstration deployment, not guaranteed production uptime.
@@ -17,20 +16,22 @@ Push the repository to GitHub. Never commit `backend/.env`; it contains secrets.
 1. Create a Neon Free project at `https://console.neon.tech`.
 2. In the project dashboard, click **Connect** and enable **Pooled connection**.
 3. Copy the PostgreSQL connection string. Keep the generated `sslmode=require` parameter in the URL.
-4. Keep this value private. It will be used as Render's `DATABASE_URL`.
+4. Keep this value private. It will be used as the backend Vercel project's `DATABASE_URL`.
 
-The backend runs `npm run db:migrate` whenever its Render service starts, so an empty Neon database receives all Kanvero tables automatically.
+The backend runs `npm run db:migrate` during each Vercel build, so an empty Neon database receives all Kanvero tables automatically.
 
-## 3. Deploy the Express backend on Render
+## 3. Deploy the Express backend on Vercel
 
-1. In Render, choose **New > Blueprint**.
-2. Connect the GitHub repository.
-3. Render detects the root `render.yaml` file and creates `kanvero-api`.
-4. When asked for `DATABASE_URL`, paste the Neon pooled connection string.
-5. Deploy and wait for the health check to pass.
-6. Open `https://YOUR-RENDER-DOMAIN/api/health`. It must return `{ "status": "ok" }`.
+1. Import the GitHub repository in Vercel again as a new project.
+2. Set **Root Directory** to `backend`.
+3. Name the project `kanvero-api` and keep the detected framework as **Express**.
+4. Add `DATABASE_URL` with the Neon pooled connection string for Production, Preview, and Development.
+5. Add `DB_SSL=true` and `DB_POOL_MAX=5`.
+6. Add `JWT_SECRET` with a long random value and `JWT_EXPIRES_IN=7d`.
+7. Deploy and wait for the migration and deployment to complete.
+8. Open `https://YOUR-BACKEND-DOMAIN/api/health`. It must return `{ "status": "ok" }`.
 
-The free Render service sleeps after inactivity. Its first request after sleeping can be slow.
+The Express application is deployed as a Vercel Function and scales down when it is idle.
 
 ## 4. Deploy the Next.js frontend on Vercel
 
@@ -40,12 +41,12 @@ The free Render service sleeps after inactivity. Its first request after sleepin
 4. Add this environment variable for Production, Preview, and Development:
 
    ```text
-   API_BASE_URL=https://YOUR-RENDER-DOMAIN
+   API_BASE_URL=https://YOUR-BACKEND-DOMAIN
    ```
 
 5. Deploy.
 
-The browser calls `/api/...` on the Vercel domain. The Next.js rewrite proxies those requests to Render, so no browser CORS configuration is required.
+The browser calls `/api/...` on the frontend Vercel domain. The Next.js rewrite proxies those requests to the backend Vercel project, so no browser CORS configuration is required.
 
 ## 5. Move existing local data (optional)
 
@@ -59,7 +60,7 @@ Migrations create an empty hosted database. To keep existing users, boards, and 
 Run this health check after deployment:
 
 ```text
-https://YOUR-RENDER-DOMAIN/api/health
+https://YOUR-BACKEND-DOMAIN/api/health
 ```
 
 Then register or sign in through the Vercel URL and test board creation.

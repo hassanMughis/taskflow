@@ -980,22 +980,22 @@ function AddToCardMenu({ position, onLabels, onDates, onMembers, onChecklist, on
       <header className="grid h-9 grid-cols-[32px_1fr_32px] items-center">
         <span />
         <h3 className="text-center text-sm font-semibold">Add to card</h3>
-        <button type="button" aria-label="Close add menu" title="Close" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-[#44546f] hover:bg-[#e9ebf0]"><X size={17} /></button>
+        <button type="button" aria-label="Close add menu" title="Close" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-[#44546f] hover:bg-[#e9ebf0] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"><X size={17} /></button>
       </header>
       <div className="mt-2 space-y-1">
         {actions.map(({ label, description, icon: ActionIcon, onClick }) => (
-          <button key={label} type="button" onClick={onClick} className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-[#e9ebf0]">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#d5d5df] bg-[#f7f7f9] text-[#5f606d]"><ActionIcon size={19} /></span>
-            <span className="min-w-0"><span className="block text-sm font-semibold">{label}</span><span className="mt-0.5 block text-xs text-[#626f86]">{description}</span></span>
+          <button key={label} type="button" onClick={onClick} className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#d5d5df] bg-[#f7f7f9] text-[#5f606d] dark:border-[#454f59] dark:bg-[#22272b] dark:text-[#b6c2cf]"><ActionIcon size={19} /></span>
+            <span className="min-w-0"><span className="block text-sm font-semibold">{label}</span><span className="mt-0.5 block text-xs text-[#626f86] dark:text-[#9fadbc]">{description}</span></span>
           </button>
         ))}
-        <button type="button" onClick={onAttachment} className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-[#e9ebf0]">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#d5d5df] bg-[#f7f7f9] text-[#5f606d]"><Paperclip size={19} /></span>
-          <span><span className="block text-sm font-semibold">Attachment</span><span className="mt-0.5 block text-xs text-[#626f86]">Add files and links</span></span>
+        <button type="button" onClick={onAttachment} className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#d5d5df] bg-[#f7f7f9] text-[#5f606d] dark:border-[#454f59] dark:bg-[#22272b] dark:text-[#b6c2cf]"><Paperclip size={19} /></span>
+          <span><span className="block text-sm font-semibold">Attachment</span><span className="mt-0.5 block text-xs text-[#626f86] dark:text-[#9fadbc]">Add files and links</span></span>
         </button>
-        <button type="button" onClick={onCustomFields} className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-[#e9ebf0]">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#d5d5df] bg-[#f7f7f9] text-[#5f606d]"><SlidersHorizontal size={19} /></span>
-          <span><span className="block text-sm font-semibold">Custom Fields</span><span className="mt-0.5 block text-xs text-[#626f86]">Create your own fields</span></span>
+        <button type="button" onClick={onCustomFields} className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#d5d5df] bg-[#f7f7f9] text-[#5f606d] dark:border-[#454f59] dark:bg-[#22272b] dark:text-[#b6c2cf]"><SlidersHorizontal size={19} /></span>
+          <span><span className="block text-sm font-semibold">Custom Fields</span><span className="mt-0.5 block text-xs text-[#626f86] dark:text-[#9fadbc]">Create your own fields</span></span>
         </button>
       </div>
     </section>
@@ -1289,22 +1289,22 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     .sort(([first], [second]) => first === "Unscheduled" ? 1 : second === "Unscheduled" ? -1 : first.localeCompare(second));
 
   function renderBoardSwitcherBoards(boards: typeof visibleBoards) {
-    if (boards.length === 0) return <p className="py-8 text-center text-sm text-[#626f86]">No boards found</p>;
+    if (boards.length === 0) return <p className="py-8 text-center text-sm text-[#626f86] dark:text-[#9fadbc]">No boards found</p>;
 
     return (
       <div className={boardListView ? "space-y-2" : "flex flex-wrap gap-2.5"}>
         {boards.map(([slug, details]) => {
           const current = slug === boardSlug;
           return boardListView ? (
-            <Link key={slug} href={`/boards/${slug}`} onClick={() => setBoardSwitcherOpen(false)} className={`flex h-15 items-center gap-3 rounded-lg p-2 transition-colors ${current ? "bg-[#e9f2ff]" : "hover:bg-[#e9ebf0]"}`}>
-              <span className="relative flex h-11 w-18 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#dfe1e6]">{details.cover ? <Image src={details.cover} alt="" fill sizes="72px" className="object-cover" /> : <Icon name="grid" size={18} />}</span>
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#172b4d]">{details.title}</span>
+            <Link key={slug} href={`/boards/${slug}`} onClick={() => setBoardSwitcherOpen(false)} className={`flex h-15 items-center gap-3 rounded-lg p-2 transition-colors ${current ? "bg-[#e9f2ff] dark:bg-[#1c3d5d]" : "hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]"}`}>
+              <span className="relative flex h-11 w-18 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#dfe1e6] dark:bg-[#454f59]">{details.cover ? <Image src={details.cover} alt="" fill sizes="72px" className="object-cover" /> : <Icon name="grid" size={18} />}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#172b4d] dark:text-[#f1f2f4]">{details.title}</span>
               {current ? <Check size={17} className="text-[#0c66e4]" /> : null}
             </Link>
           ) : (
-            <Link key={slug} href={`/boards/${slug}`} onClick={() => setBoardSwitcherOpen(false)} className={`w-36 overflow-hidden rounded-lg bg-white shadow-sm transition-transform hover:-translate-y-0.5 ${current ? "ring-2 ring-[#0c66e4]" : "ring-1 ring-[#dcdfe4]"}`}>
-              <span className="relative flex h-20 w-full items-center justify-center overflow-hidden bg-[#dfe1e6]">{details.cover ? <Image src={details.cover} alt="" fill sizes="144px" className="object-cover" /> : <Icon name="grid" size={22} />}</span>
-              <span className="block truncate px-2 py-2.5 text-sm font-semibold text-[#172b4d]">{details.title}</span>
+            <Link key={slug} href={`/boards/${slug}`} onClick={() => setBoardSwitcherOpen(false)} className={`w-36 overflow-hidden rounded-lg bg-white shadow-sm transition-transform hover:-translate-y-0.5 dark:bg-[#22272b] ${current ? "ring-2 ring-[#0c66e4]" : "ring-1 ring-[#dcdfe4] dark:ring-[#454f59]"}`}>
+              <span className="relative flex h-20 w-full items-center justify-center overflow-hidden bg-[#dfe1e6] dark:bg-[#454f59]">{details.cover ? <Image src={details.cover} alt="" fill sizes="144px" className="object-cover" /> : <Icon name="grid" size={22} />}</span>
+              <span className="block truncate px-2 py-2.5 text-sm font-semibold text-[#172b4d] dark:text-[#f1f2f4]">{details.title}</span>
             </Link>
           );
         })}
@@ -2253,12 +2253,12 @@ export function BoardView({ boardSlug }: BoardViewProps) {
         ) : null}
         <DragOverlay dropAnimation={null}>
           {activeCard ? <div className="w-65.5 rotate-2 cursor-grabbing opacity-95"><CardContent {...activeCard} labels={boardLabels} /></div> : activeList ? (
-            <div className="grid max-h-[calc(100dvh-190px)] w-71.5 rotate-1 cursor-grabbing grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-xl border border-white/50 bg-[#f1f2f4] p-3 text-[#2b2c35] opacity-95 shadow-2xl">
+            <div className="grid max-h-[calc(100dvh-190px)] w-71.5 rotate-1 cursor-grabbing grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-xl border border-white/50 bg-[#f1f2f4] p-3 text-[#2b2c35] opacity-95 shadow-2xl dark:border-[#454f59] dark:bg-[#101214] dark:text-[#f1f2f4]">
               <h2 className="mb-3 h-8 px-1 py-1.5 text-sm font-semibold">{activeList.title}</h2>
               <div className="min-h-0 space-y-2.5 overflow-hidden">
                 {activeList.cards.map((card) => <CardContent key={card.id} {...card} labels={boardLabels} />)}
               </div>
-              <div className="mt-3 flex h-9 items-center gap-2 px-2 text-sm font-medium text-[#44546f]"><Icon name="plus" size={17} /> Add a card</div>
+              <div className="mt-3 flex h-9 items-center gap-2 px-2 text-sm font-medium text-[#44546f] dark:text-[#b6c2cf]"><Icon name="plus" size={17} /> Add a card</div>
             </div>
           ) : null}
         </DragOverlay>
@@ -2275,30 +2275,30 @@ export function BoardView({ boardSlug }: BoardViewProps) {
 
       {boardSwitcherOpen ? createPortal(
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-[#172b4d]/35 p-3 backdrop-blur-sm" onPointerDown={(event) => { if (event.target === event.currentTarget && !boardSwitcherPinned) setBoardSwitcherOpen(false); }}>
-          <section ref={switcherDialogRef} role="dialog" aria-modal="true" aria-label="Switch boards" className="flex h-[min(750px,calc(100dvh-24px))] w-[min(670px,calc(100vw-24px))] flex-col overflow-hidden rounded-[18px] border border-[#dcdfe4] bg-[#f4f5f7] px-6 py-7 text-[#44546f] shadow-[0_28px_80px_rgba(9,30,66,0.28)] sm:px-7">
+          <section ref={switcherDialogRef} role="dialog" aria-modal="true" aria-label="Switch boards" className="flex h-[min(750px,calc(100dvh-24px))] w-[min(670px,calc(100vw-24px))] flex-col overflow-hidden rounded-[18px] border border-[#dcdfe4] bg-[#f4f5f7] px-6 py-7 text-[#44546f] shadow-[0_28px_80px_rgba(9,30,66,0.28)] dark:border-[#454f59] dark:bg-[#282e33] dark:text-[#b6c2cf] sm:px-7">
             <div className="flex items-center gap-2">
               <div className="relative min-w-0 flex-1">
-                <Search size={19} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#626f86]" />
-                <input value={boardSearch} onChange={(event) => setBoardSearch(event.target.value)} autoFocus type="search" placeholder="Search your boards" className="h-10 w-full rounded-lg border border-[#8590a2] bg-white pl-10 pr-3 text-sm text-[#172b4d] outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-1 focus:ring-[#0c66e4]" />
+                <Search size={19} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#626f86] dark:text-[#9fadbc]" />
+                <input value={boardSearch} onChange={(event) => setBoardSearch(event.target.value)} autoFocus type="search" placeholder="Search your boards" className="h-10 w-full rounded-lg border border-[#8590a2] bg-white pl-10 pr-3 text-sm text-[#172b4d] outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-1 focus:ring-[#0c66e4] dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#f1f2f4] dark:placeholder:text-[#9fadbc]" />
               </div>
-              <button type="button" aria-label={boardListView ? "Use board tiles" : "Use board list"} title={boardListView ? "Board tiles" : "Board list"} onClick={() => setBoardListView((listView) => !listView)} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${boardListView ? "border-[#0c66e4] bg-[#e9f2ff] text-[#0c66e4]" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0]"}`}><ListFilter size={19} /></button>
-              <button type="button" aria-label={boardSwitcherPinned ? "Unpin board switcher" : "Pin board switcher"} aria-pressed={boardSwitcherPinned} title={boardSwitcherPinned ? "Unpin" : "Pin"} onClick={() => setBoardSwitcherPinned((pinned) => !pinned)} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${boardSwitcherPinned ? "border-[#0c66e4] bg-[#e9f2ff] text-[#0c66e4]" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0]"}`}><Pin size={18} fill={boardSwitcherPinned ? "currentColor" : "none"} /></button>
+              <button type="button" aria-label={boardListView ? "Use board tiles" : "Use board list"} title={boardListView ? "Board tiles" : "Board list"} onClick={() => setBoardListView((listView) => !listView)} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${boardListView ? "border-[#0c66e4] bg-[#e9f2ff] text-[#0c66e4] dark:bg-[#1c3d5d] dark:text-[#85b8ff]" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0] dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"}`}><ListFilter size={19} /></button>
+              <button type="button" aria-label={boardSwitcherPinned ? "Unpin board switcher" : "Pin board switcher"} aria-pressed={boardSwitcherPinned} title={boardSwitcherPinned ? "Unpin" : "Pin"} onClick={() => setBoardSwitcherPinned((pinned) => !pinned)} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors ${boardSwitcherPinned ? "border-[#0c66e4] bg-[#e9f2ff] text-[#0c66e4] dark:bg-[#1c3d5d] dark:text-[#85b8ff]" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0] dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"}`}><Pin size={18} fill={boardSwitcherPinned ? "currentColor" : "none"} /></button>
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-              <button type="button" onClick={() => setBoardScope("all")} className={`h-7 rounded-md border px-2.5 transition-colors ${boardScope === "all" ? "border-[#0c66e4] bg-[#0c66e4] text-white" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0]"}`}>All</button>
-              <button type="button" onClick={() => { setBoardScope("workspace"); setWorkspaceBoardsOpen(true); }} className={`h-7 max-w-full truncate rounded-md border px-2.5 transition-colors ${boardScope === "workspace" ? "border-[#0c66e4] bg-[#0c66e4] text-white" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0]"}`}>{board.workspace}</button>
+              <button type="button" onClick={() => setBoardScope("all")} className={`h-7 rounded-md border px-2.5 transition-colors ${boardScope === "all" ? "border-[#0c66e4] bg-[#0c66e4] text-white" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0] dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"}`}>All</button>
+              <button type="button" onClick={() => { setBoardScope("workspace"); setWorkspaceBoardsOpen(true); }} className={`h-7 max-w-full truncate rounded-md border px-2.5 transition-colors ${boardScope === "workspace" ? "border-[#0c66e4] bg-[#0c66e4] text-white" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0] dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"}`}>{board.workspace}</button>
             </div>
 
             <div className="board-list-scrollbar mt-7 min-h-0 flex-1 overflow-y-auto pr-1">
               {boardScope === "all" ? (
                 <>
-                  <div className="flex items-center gap-2 px-2 text-sm font-semibold text-[#44546f]"><Clock3 size={18} /> Recent</div>
+                  <div className="flex items-center gap-2 px-2 text-sm font-semibold text-[#44546f] dark:text-[#b6c2cf]"><Clock3 size={18} /> Recent</div>
                   <div className="mt-4">{renderBoardSwitcherBoards(visibleBoards)}</div>
                 </>
               ) : null}
 
-              <button type="button" aria-expanded={workspaceBoardsOpen} onClick={() => setWorkspaceBoardsOpen((open) => !open)} className={`${boardScope === "all" ? "mt-7" : "mt-1"} flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-sm font-semibold text-[#44546f] transition-colors hover:bg-[#e9ebf0]`}>
+              <button type="button" aria-expanded={workspaceBoardsOpen} onClick={() => setWorkspaceBoardsOpen((open) => !open)} className={`${boardScope === "all" ? "mt-7" : "mt-1"} flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-sm font-semibold text-[#44546f] transition-colors hover:bg-[#e9ebf0] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]`}>
                 <span className={`transition-transform ${workspaceBoardsOpen ? "rotate-90" : ""}`}><Icon name="chevron-right" size={18} /></span> {board.workspace}
               </button>
               {workspaceBoardsOpen ? <div className="mt-3 pl-8">{renderBoardSwitcherBoards(workspaceBoards)}</div> : null}

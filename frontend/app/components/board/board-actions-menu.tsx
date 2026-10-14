@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Archive, Pencil, Trash2 } from "lucide-react";
 import { apiDelete, apiPatch } from "../../lib/api-client";
@@ -28,20 +28,35 @@ export function BoardActionsMenu({ boardId, title, archived = false, onRenamed, 
   const renameDialogRef = useDialogFocus<HTMLElement>(renameOpen);
   const deleteDialogRef = useDialogFocus<HTMLElement>(deleteOpen);
 
+  const calculateMenuPosition = useCallback(() => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return { left: 8, top: 8 };
+    const menuWidth = 192;
+    const estimatedMenuHeight = 176;
+    return {
+      left: Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8)),
+      top: rect.bottom + 8 + estimatedMenuHeight <= window.innerHeight
+        ? rect.bottom + 8
+        : Math.max(8, rect.top - estimatedMenuHeight - 8),
+    };
+  }, []);
+
+  function toggleMenu() {
+    if (menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
+    setMenuPosition(calculateMenuPosition());
+    setMenuOpen(true);
+  }
+
   useEffect(() => {
     if (!menuOpen) return;
     function updateMenuPosition() {
-      const rect = triggerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const menuWidth = 192;
-      const estimatedMenuHeight = 176;
-      const top = rect.bottom + 8 + estimatedMenuHeight <= window.innerHeight
-        ? rect.bottom + 8
-        : Math.max(8, rect.top - estimatedMenuHeight - 8);
-      setMenuPosition({
-        left: Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8)),
-        top,
-      });
+      const position = calculateMenuPosition();
+      if (!menuRef.current) return;
+      menuRef.current.style.left = `${position.left}px`;
+      menuRef.current.style.top = `${position.top}px`;
     }
     function closeMenu(event: PointerEvent) {
       if (!menuRef.current?.contains(event.target as Node) && !triggerRef.current?.contains(event.target as Node)) setMenuOpen(false);
@@ -60,7 +75,7 @@ export function BoardActionsMenu({ boardId, title, archived = false, onRenamed, 
       window.removeEventListener("resize", updateMenuPosition);
       window.removeEventListener("scroll", updateMenuPosition, true);
     };
-  }, [menuOpen]);
+  }, [calculateMenuPosition, menuOpen]);
 
   async function renameBoard(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -112,7 +127,7 @@ export function BoardActionsMenu({ boardId, title, archived = false, onRenamed, 
   return (
     <>
       <div ref={triggerRef} className="absolute right-3 top-3 z-20">
-        <button type="button" aria-label={`Board options for ${title}`} aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)} className="flex h-8 w-8 items-center justify-center rounded-md bg-black/35 text-white shadow-sm backdrop-blur-sm transition hover:bg-black/55"><Icon name="ellipsis" size={18} /></button>
+        <button type="button" aria-label={`Board options for ${title}`} aria-haspopup="menu" aria-expanded={menuOpen} onClick={toggleMenu} className="flex h-8 w-8 items-center justify-center rounded-md bg-black/35 text-white shadow-sm backdrop-blur-sm transition hover:bg-black/55"><Icon name="ellipsis" size={18} /></button>
       </div>
 
       {menuOpen ? createPortal(<div ref={menuRef} role="menu" style={menuPosition} className="fixed z-100 w-48 rounded-lg border border-[#dfe1e6] bg-white p-1.5 text-sm text-[#172b4d] shadow-xl dark:border-[#454f59] dark:bg-[#282e33] dark:text-[#f1f2f4]">

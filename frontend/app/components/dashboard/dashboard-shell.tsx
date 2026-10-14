@@ -206,7 +206,7 @@ function BoardHub({ allBoards, workspaces, workspaceError, onCreate, onSettings,
       {/* Recently Viewed */}
       <section className="mt-6">
         <h2 className="text-xl font-semibold text-[#172b4d] dark:text-[#f1f2f4]">Recently viewed</h2>
-        <div className="mt-4 flex gap-4 overflow-x-auto pb-2 lg:max-w-[610px]">
+        <div className="mt-4 flex flex-wrap gap-4 overflow-visible pb-2 lg:max-w-[610px]">
           {allBoards.slice(0, 2).map((board) => <BoardCard key={board.slug} board={board} onRenamed={onBoardRenamed} onRemoved={onBoardRemoved} onError={onError} />)}
         </div>
       </section>

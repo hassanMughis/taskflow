@@ -58,6 +58,10 @@ export function BoardActionsMenu({ boardId, title, archived = false, onRenamed, 
       menuRef.current.style.left = `${position.left}px`;
       menuRef.current.style.top = `${position.top}px`;
     }
+    function closeOnScroll() {
+      if (menuRef.current) menuRef.current.style.display = "none";
+      setMenuOpen(false);
+    }
     function closeMenu(event: PointerEvent) {
       if (!menuRef.current?.contains(event.target as Node) && !triggerRef.current?.contains(event.target as Node)) setMenuOpen(false);
     }
@@ -68,12 +72,12 @@ export function BoardActionsMenu({ boardId, title, archived = false, onRenamed, 
     window.addEventListener("pointerdown", closeMenu);
     window.addEventListener("keydown", closeOnEscape);
     window.addEventListener("resize", updateMenuPosition);
-    window.addEventListener("scroll", updateMenuPosition, true);
+    window.addEventListener("scroll", closeOnScroll, true);
     return () => {
       window.removeEventListener("pointerdown", closeMenu);
       window.removeEventListener("keydown", closeOnEscape);
       window.removeEventListener("resize", updateMenuPosition);
-      window.removeEventListener("scroll", updateMenuPosition, true);
+      window.removeEventListener("scroll", closeOnScroll, true);
     };
   }, [calculateMenuPosition, menuOpen]);
 

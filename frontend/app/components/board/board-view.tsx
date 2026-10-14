@@ -85,6 +85,24 @@ type BoardAutomationItem = { id: string; name: string; triggerType: "card_create
 type ApiBoardSummary = Pick<ApiBoard, "id" | "workspaceId" | "title" | "slug" | "coverUrl">;
 type ApiWorkspace = { id: string; ownerId: string; name: string; members?: ApiUser[] };
 
+// A DndContext requires every draggable identifier to be unique. Database IDs
+// are only unique within their own tables, so a card and a list can both be
+// "4". Namespace the identifiers used by dnd-kit while keeping API IDs raw.
+function cardDragId(id: string) {
+  return `card:${id}`;
+}
+
+function listDragId(id: string) {
+  return `list:${id}`;
+}
+
+function dragEntityId(id: string | number) {
+  const value = String(id);
+  if (value.startsWith("card:")) return value.slice("card:".length);
+  if (value.startsWith("list:")) return value.slice("list:".length);
+  return value;
+}
+
 type BoardCardData = {
   id: string;
   creatorId?: string;
@@ -581,7 +599,7 @@ function MemberPicker({ card, menuPosition, onToggleMember, onClose, onBack, pla
 }
 
 function SortableCard({ card, currentList, lists, labels, canEdit, onToggleComplete, onToggleLabel, onToggleMember, onChangeCover, onUploadCover, onChangeDates, onMoveCard, onOpenCard, quickMenuOpen, labelMenuOpen, memberMenuOpen, coverMenuOpen, dateMenuOpen, moveMenuOpen, quickMenuPosition, onQuickEdit, onOpenLabelMenu, onOpenMemberMenu, onOpenCoverMenu, onOpenDateMenu, onOpenMoveMenu, onCloseLabelMenu, onCloseMemberMenu, onCloseCoverMenu, onCloseDateMenu, onCloseMoveMenu, onCloseQuickMenu, onOpenLabelEditor }: { card: BoardCardData; currentList: BoardListData; lists: BoardListData[]; labels: BoardLabel[]; canEdit: boolean; onToggleComplete: (cardId: string) => void; onToggleLabel: (cardId: string, labelId: string) => void; onToggleMember: (cardId: string, memberId: string) => void; onChangeCover: (cardId: string, update: CardCoverUpdate) => void; onUploadCover: (cardId: string, file: File) => void; onChangeDates: (cardId: string, update: CardDateUpdate) => void; onMoveCard: (cardId: string, listId: string, position: number) => void; onOpenCard: (cardId: string) => void; quickMenuOpen: boolean; labelMenuOpen: boolean; memberMenuOpen: boolean; coverMenuOpen: boolean; dateMenuOpen: boolean; moveMenuOpen: boolean; quickMenuPosition: MenuPosition | null; onQuickEdit: (cardId: string, position: MenuPosition) => void; onOpenLabelMenu: (cardId: string) => void; onOpenMemberMenu: (cardId: string) => void; onOpenCoverMenu: (cardId: string) => void; onOpenDateMenu: (cardId: string) => void; onOpenMoveMenu: (cardId: string) => void; onCloseLabelMenu: () => void; onCloseMemberMenu: () => void; onCloseCoverMenu: () => void; onCloseDateMenu: () => void; onCloseMoveMenu: () => void; onCloseQuickMenu: () => void; onOpenLabelEditor: (label: { id: string; name: string; color: string } | null, position: MenuPosition) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: card.id, data: { type: "card" }, disabled: !canEdit });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cardDragId(card.id), data: { type: "card", entityId: card.id }, disabled: !canEdit });
   const [linkCopied, setLinkCopied] = useState(false);
   const coverPickerPosition = quickMenuPosition ? (() => {
     const popupWidth = Math.min(336, window.innerWidth - 32);
@@ -654,7 +672,7 @@ function SortableCard({ card, currentList, lists, labels, canEdit, onToggleCompl
 }
 
 function BoardList({ list, lists, labels, canEdit, onAddCard, onRenameList, onArchiveList, onDeleteList, onCopyList, onMoveList, onSortList, onToggleComplete, onToggleLabel, onToggleMember, onChangeCover, onUploadCover, onChangeDates, onMoveCard, onOpenCard, quickMenuCardId, labelMenuCardId, memberMenuCardId, coverMenuCardId, dateMenuCardId, moveMenuCardId, quickMenuPosition, onQuickEdit, onOpenLabelMenu, onOpenMemberMenu, onOpenCoverMenu, onOpenDateMenu, onOpenMoveMenu, onCloseLabelMenu, onCloseMemberMenu, onCloseCoverMenu, onCloseDateMenu, onCloseMoveMenu, onCloseQuickMenu, onOpenLabelEditor }: { list: BoardListData; lists: BoardListData[]; labels: BoardLabel[]; canEdit: boolean; onAddCard: (listId: string, title: string, atTop?: boolean) => void; onRenameList: (listId: string, title: string) => void; onArchiveList: (listId: string) => void; onDeleteList: (listId: string) => void; onCopyList: (listId: string) => void; onMoveList: (listId: string, direction: -1 | 1) => void; onSortList: (listId: string) => void; onToggleComplete: (cardId: string) => void; onToggleLabel: (cardId: string, labelId: string) => void; onToggleMember: (cardId: string, memberId: string) => void; onChangeCover: (cardId: string, update: CardCoverUpdate) => void; onUploadCover: (cardId: string, file: File) => void; onChangeDates: (cardId: string, update: CardDateUpdate) => void; onMoveCard: (cardId: string, listId: string, position: number) => void; onOpenCard: (cardId: string) => void; quickMenuCardId: string | null; labelMenuCardId: string | null; memberMenuCardId: string | null; coverMenuCardId: string | null; dateMenuCardId: string | null; moveMenuCardId: string | null; quickMenuPosition: MenuPosition | null; onQuickEdit: (cardId: string, position: MenuPosition) => void; onOpenLabelMenu: (cardId: string) => void; onOpenMemberMenu: (cardId: string) => void; onOpenCoverMenu: (cardId: string) => void; onOpenDateMenu: (cardId: string) => void; onOpenMoveMenu: (cardId: string) => void; onCloseLabelMenu: () => void; onCloseMemberMenu: () => void; onCloseCoverMenu: () => void; onCloseDateMenu: () => void; onCloseMoveMenu: () => void; onCloseQuickMenu: () => void; onOpenLabelEditor: (label: { id: string; name: string; color: string } | null, position: MenuPosition) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id: list.id, data: { type: "list" }, disabled: !canEdit });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({ id: listDragId(list.id), data: { type: "list", entityId: list.id }, disabled: !canEdit });
   const containsQuickMenu = list.cards.some((card) => card.id === quickMenuCardId);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
@@ -796,7 +814,7 @@ function BoardList({ list, lists, labels, canEdit, onAddCard, onRenameList, onAr
           const top = Math.round((viewport.scrollTop / (viewport.scrollHeight - viewport.clientHeight)) * availableTravel);
           setScrollThumb((current) => current.top === top ? current : { ...current, top });
         }} className="board-list-scrollbar h-full w-full overflow-y-auto">
-          <SortableContext items={list.cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={list.cards.map((card) => cardDragId(card.id))} strategy={verticalListSortingStrategy}>
             <div ref={scrollContentRef} className="space-y-2.5">
               {list.cards.map((card) => <SortableCard key={card.id} card={card} currentList={list} lists={lists} labels={labels} canEdit={canEdit} onToggleComplete={onToggleComplete} onToggleLabel={onToggleLabel} onToggleMember={onToggleMember} onChangeCover={onChangeCover} onUploadCover={onUploadCover} onChangeDates={onChangeDates} onMoveCard={onMoveCard} onOpenCard={onOpenCard} quickMenuOpen={quickMenuCardId === card.id} labelMenuOpen={labelMenuCardId === card.id} memberMenuOpen={memberMenuCardId === card.id} coverMenuOpen={coverMenuCardId === card.id} dateMenuOpen={dateMenuCardId === card.id} moveMenuOpen={moveMenuCardId === card.id} quickMenuPosition={quickMenuPosition} onQuickEdit={onQuickEdit} onOpenLabelMenu={onOpenLabelMenu} onOpenMemberMenu={onOpenMemberMenu} onOpenCoverMenu={onOpenCoverMenu} onOpenDateMenu={onOpenDateMenu} onOpenMoveMenu={onOpenMoveMenu} onCloseLabelMenu={onCloseLabelMenu} onCloseMemberMenu={onCloseMemberMenu} onCloseCoverMenu={onCloseCoverMenu} onCloseDateMenu={onCloseDateMenu} onCloseMoveMenu={onCloseMoveMenu} onCloseQuickMenu={onCloseQuickMenu} onOpenLabelEditor={onOpenLabelEditor} />)}
             </div>
@@ -1464,10 +1482,10 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     listsBeforeDrag.current = lists;
     if (event.active.data.current?.type === "list") {
       setActiveCardId(null);
-      setActiveListId(String(event.active.id));
+      setActiveListId(String(event.active.data.current?.entityId ?? dragEntityId(event.active.id)));
     } else {
       setActiveListId(null);
-      setActiveCardId(String(event.active.id));
+      setActiveCardId(String(event.active.data.current?.entityId ?? dragEntityId(event.active.id)));
     }
   }
 
@@ -1477,8 +1495,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     const { active, over } = event;
     if (!over) return;
 
-    const activeId = String(active.id);
-    const overId = String(over.id);
+    const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
+    const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
 
     setLists((currentLists) => {
       const sourceListIndex = findListIndex(activeId, currentLists);
@@ -2064,8 +2082,10 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     if (active.data.current?.type === "list") {
       listsBeforeDrag.current = null;
       if (!over || active.id === over.id) return;
-      const sourceIndex = lists.findIndex((list) => list.id === active.id);
-      const targetIndex = lists.findIndex((list) => list.id === over.id || list.cards.some((card) => card.id === over.id));
+      const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
+      const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
+      const sourceIndex = lists.findIndex((list) => list.id === activeId);
+      const targetIndex = lists.findIndex((list) => list.id === overId || list.cards.some((card) => card.id === overId));
       if (sourceIndex < 0 || targetIndex < 0) return;
       const nextLists = arrayMove(lists, sourceIndex, targetIndex);
       setLists(nextLists);
@@ -2081,8 +2101,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     }
 
     listsBeforeDrag.current = null;
-    const activeId = String(active.id);
-    const overId = String(over.id);
+    const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
+    const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
     const sourceListIndex = findListIndex(activeId);
     const targetListIndex = findListIndex(overId);
 
@@ -2171,7 +2191,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
         <div className={`board-scrollbar relative z-10 min-h-0 flex-1 p-4 pb-20 md:p-5 md:pb-20 ${activeBoardView === "board" ? "flex items-start gap-4 overflow-x-auto overflow-y-hidden" : "overflow-auto"}`}>
           {activeBoardView === "board" ? <>
-          <SortableContext items={lists.map((list) => list.id)} strategy={horizontalListSortingStrategy}>
+          <SortableContext items={lists.map((list) => listDragId(list.id))} strategy={horizontalListSortingStrategy}>
             {filteredLists.map((list) => <BoardList key={list.id} list={list} lists={lists} labels={boardLabels} canEdit={canEditBoard} onAddCard={addCard} onRenameList={renameList} onArchiveList={archiveList} onDeleteList={deleteList} onCopyList={copyList} onMoveList={moveList} onSortList={sortList} onToggleComplete={toggleCardComplete} onToggleLabel={toggleCardLabel} onToggleMember={toggleCardMember} onChangeCover={changeCardCover} onUploadCover={uploadCardCover} onChangeDates={changeCardDates} onMoveCard={moveCard} onOpenCard={openCardDetails} quickMenuCardId={quickMenuCardId} labelMenuCardId={labelMenuCardId} memberMenuCardId={memberMenuCardId} coverMenuCardId={coverMenuCardId} dateMenuCardId={dateMenuCardId} moveMenuCardId={moveMenuCardId} quickMenuPosition={quickMenuPosition} onQuickEdit={openQuickMenu} onOpenLabelMenu={openLabelMenu} onOpenMemberMenu={openMemberMenu} onOpenCoverMenu={openCoverMenu} onOpenDateMenu={openDateMenu} onOpenMoveMenu={openMoveMenu} onCloseLabelMenu={() => setLabelMenuCardId(null)} onCloseMemberMenu={() => setMemberMenuCardId(null)} onCloseCoverMenu={() => setCoverMenuCardId(null)} onCloseDateMenu={() => setDateMenuCardId(null)} onCloseMoveMenu={() => setMoveMenuCardId(null)} onCloseQuickMenu={() => { setQuickMenuCardId(null); setLabelMenuCardId(null); setMemberMenuCardId(null); setCoverMenuCardId(null); setDateMenuCardId(null); setMoveMenuCardId(null); setQuickMenuPosition(null); }} onOpenLabelEditor={(label, position) => { setLabelEditor(label); setLabelEditorPosition(position); }} />)}
           </SortableContext>
           {canEditBoard && addingList ? (

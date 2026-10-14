@@ -2134,7 +2134,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
 
       <header className="relative z-20 flex h-16 shrink-0 items-center border-b border-[#dcdfe4] bg-[#ffffff]/95 px-5 shadow-sm backdrop-blur dark:border-[#454f59] dark:bg-[#1d2125]/95 md:px-10">
         <Link href="/dashboard" aria-label="Back to dashboard" className="flex items-center gap-3">
-          <Image src="/image_3-removebg-preview.png" alt="Kanvero" width={230} height={74} priority className="h-auto w-33 md:w-38.5" />
+          <Image src="/image_3-removebg-preview.png" alt="Kanvero" width={230} height={74} priority className="h-auto w-33 dark:brightness-0 dark:invert md:w-38.5" />
         </Link>
         <form onSubmit={(event) => { event.preventDefault(); searchCards(); }} className="relative ml-8 hidden h-10 w-[min(58vw,780px)] items-center md:flex">
           <Icon name="search" size={20} className="absolute left-3 text-[#44546f]" />
@@ -2143,8 +2143,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
         </form>
         {canEditBoard ? <button type="button" onClick={() => setAddingList(true)} className="ml-2 hidden h-10 rounded-lg bg-[#0c66e4] px-4 text-sm font-medium text-white transition hover:bg-[#0055cc] sm:block">Create</button> : null}
         <div className="ml-auto flex items-center gap-2">
-          <Link href="/notifications" aria-label="Notifications" title="Notifications" className="flex h-9 w-9 items-center justify-center rounded-full text-[#464657] transition hover:bg-[#e9ebf0]"><Icon name="bell" size={20} /></Link>
-          <button type="button" aria-label="Help" title="Help" onClick={() => setHelpOpen(true)} className="hidden h-9 w-9 items-center justify-center rounded-full text-[#464657] transition hover:bg-[#e9ebf0] sm:flex"><Icon name="help" size={21} /></button>
+          <Link href="/notifications" aria-label="Notifications" title="Notifications" className="flex h-9 w-9 items-center justify-center rounded-full text-[#464657] transition hover:bg-[#e9ebf0] dark:text-[#b6c2cf] dark:hover:bg-[#282e33] dark:hover:text-[#f1f2f4]"><Icon name="bell" size={20} /></Link>
+          <button type="button" aria-label="Help" title="Help" onClick={() => setHelpOpen(true)} className="hidden h-9 w-9 items-center justify-center rounded-full text-[#464657] transition hover:bg-[#e9ebf0] dark:text-[#b6c2cf] dark:hover:bg-[#282e33] dark:hover:text-[#f1f2f4] sm:flex"><Icon name="help" size={21} /></button>
           <Avatar label={boardMembers[0]?.initials ?? "U"} />
         </div>
       </header>
@@ -2154,9 +2154,9 @@ export function BoardView({ boardSlug }: BoardViewProps) {
           <div className="flex items-center gap-2">
             <h1 className="truncate text-lg font-semibold md:text-xl">{board.title}</h1>
             <button type="button" aria-label={boardStarred ? "Unstar board" : "Star board"} aria-pressed={boardStarred} title={boardStarred ? "Unstar board" : "Star board"} onClick={toggleBoardStar} className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-[color,background-color,transform] duration-150 active:scale-90 ${boardStarred ? "bg-[#fff3c4] text-[#d99a00] hover:bg-[#ffeaa0]" : "text-[#5e5f6b] hover:bg-black/10 hover:text-[#0c66e4]"} ${starAnimating ? "scale-125" : "scale-100"}`}><Star size={18} fill={boardStarred ? "currentColor" : "none"} /></button>
-            <select aria-label="Board visibility" title="Board visibility" value={board.visibility ?? "workspace"} disabled={!canManageBoard} onChange={(event) => changeBoardVisibility(event.target.value as "private" | "workspace" | "public")} className="hidden h-8 rounded-md border border-[#b7bec8] bg-white/80 px-2 text-xs capitalize text-[#44546f] outline-none disabled:opacity-60 sm:block"><option value="private">Private</option><option value="workspace">Workspace</option><option value="public">Public</option></select>
+            <select aria-label="Board visibility" title="Board visibility" value={board.visibility ?? "workspace"} disabled={!canManageBoard} onChange={(event) => changeBoardVisibility(event.target.value as "private" | "workspace" | "public")} className="hidden h-8 rounded-md border border-[#b7bec8] bg-white/90 px-2 text-xs capitalize text-[#172b4d] outline-none focus:border-[#0c66e4] disabled:cursor-default disabled:opacity-100 dark:border-[#626f86] dark:bg-[#282e33] dark:text-[#f1f2f4] dark:[color-scheme:dark] sm:block"><option value="private">Private</option><option value="workspace">Workspace</option><option value="public">Public</option></select>
           </div>
-          <p className="hidden text-xs text-[#44546f] sm:block">{board.workspace}</p>
+          <p className="hidden text-xs text-[#44546f] dark:text-[#b6c2cf] sm:block">{board.workspace}</p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
           <div className="hidden -space-x-2 sm:flex">{boardMembers.filter((member) => boardMemberIds.has(member.id)).slice(0, 3).map((member) => <Avatar key={member.id} label={member.initials} />)}</div>

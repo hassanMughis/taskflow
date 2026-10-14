@@ -12,6 +12,7 @@ import { templateCreateUrl } from "./template-utils";
 
 type TemplateDetailViewProps = {
   category: string;
+  templateKey: string;
   title: string;
   cover: string;
   author: string;
@@ -34,6 +35,7 @@ function categoryTitle(category: string) {
 
 export function TemplateDetailView({
   category,
+  templateKey,
   title,
   cover,
   author,
@@ -134,7 +136,7 @@ export function TemplateDetailView({
     }
 
     const url = new URL(
-      templateCreateUrl(boardTitle.trim(), cover),
+      templateCreateUrl(boardTitle.trim(), cover, templateKey),
       window.location.origin,
     );
     if (workspaceId) url.searchParams.set("workspaceId", workspaceId);

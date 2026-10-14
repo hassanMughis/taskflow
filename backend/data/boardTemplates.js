@@ -354,4 +354,11 @@ export const boardTemplates = {
   ),
 };
 
-export const getBoardTemplate = (key) => boardTemplates[String(key ?? "").trim().toLowerCase()] ?? null;
+const templateAliases = {
+  "a-lead-management-pipeline-by-crmble": "a-lead-management-pipeline",
+};
+
+export const getBoardTemplate = (key) => {
+  const normalizedKey = String(key ?? "").trim().toLowerCase();
+  return boardTemplates[normalizedKey] ?? boardTemplates[templateAliases[normalizedKey]] ?? null;
+};

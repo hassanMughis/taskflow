@@ -17,6 +17,7 @@ export default async function TemplateDetailPage({ params, searchParams }: Templ
   return (
     <TemplateDetailView
       category={category}
+      templateKey={templateSlug}
       title={value(query.title, fallbackTitle)}
       author={value(query.author, "Kanvero Team")}
       description={value(query.desc, "Use this ready-made workflow to organize work, collaborate with your team, and move projects forward.")}

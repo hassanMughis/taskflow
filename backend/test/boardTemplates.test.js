@@ -17,5 +17,6 @@ test("every gallery template has a usable board structure", () => {
 
 test("template lookup normalizes keys and rejects unknown templates", () => {
   assert.equal(getBoardTemplate(" Sprint-Planning "), boardTemplates["sprint-planning"]);
+  assert.equal(getBoardTemplate("a-lead-management-pipeline-by-crmble"), boardTemplates["a-lead-management-pipeline"]);
   assert.equal(getBoardTemplate("not-a-template"), null);
 });

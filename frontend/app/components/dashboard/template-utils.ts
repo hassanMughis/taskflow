@@ -6,12 +6,12 @@ export function templateKeyFromTitle(title: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export function templateCreateUrl(title: string, cover = "/board-cover-studio.png") {
+export function templateCreateUrl(title: string, cover = "/board-cover-studio.png", templateKey = templateKeyFromTitle(title)) {
   const params = new URLSearchParams({
     create: "1",
     title,
     cover,
-    template: templateKeyFromTitle(title),
+    template: templateKey,
   });
   return `/dashboard?${params.toString()}`;
 }

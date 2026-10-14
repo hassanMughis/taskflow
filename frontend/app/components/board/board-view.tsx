@@ -2290,7 +2290,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
               <button type="button" onClick={() => { setBoardScope("workspace"); setWorkspaceBoardsOpen(true); }} className={`h-7 max-w-full truncate rounded-md border px-2.5 transition-colors ${boardScope === "workspace" ? "border-[#0c66e4] bg-[#0c66e4] text-white" : "border-[#b7bec8] bg-white text-[#44546f] hover:bg-[#e9ebf0] dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"}`}>{board.workspace}</button>
             </div>
 
-            <div className="board-list-scrollbar mt-7 min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="board-list-scrollbar mt-7 min-h-0 flex-1 overflow-y-auto p-1">
               {boardScope === "all" ? (
                 <>
                   <div className="flex items-center gap-2 px-2 text-sm font-semibold text-[#44546f] dark:text-[#b6c2cf]"><Clock3 size={18} /> Recent</div>

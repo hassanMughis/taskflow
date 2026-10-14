@@ -236,9 +236,11 @@ html {
 /* Board controls contain many compact nested editors. Keep their dark palette
    consistent without changing the board background or light theme. */
 .dark .board-theme :is(section, div, form, article, nav)[class~="bg-white"],
+.dark .board-theme :is(button, a, label, span)[class~="bg-white"],
 .dark [role="dialog"][class~="bg-white"],
 .dark [role="alertdialog"][class~="bg-white"],
-.dark [role="menu"][class~="bg-white"] {
+.dark [role="menu"][class~="bg-white"],
+.dark :is([role="dialog"], [role="alertdialog"], [role="menu"]) [class~="bg-white"] {
   background-color: #22272b !important;
   border-color: #454f59 !important;
   color: #f1f2f4 !important;
@@ -253,14 +255,23 @@ html {
 }
 
 .dark .board-theme [class~="text-[#172b4d]"],
+.dark .board-theme [class~="text-[#2b2c35]"],
 .dark [role="dialog"] [class~="text-[#172b4d]"],
-.dark [role="alertdialog"] [class~="text-[#172b4d]"] {
+.dark [role="dialog"] [class~="text-[#2b2c35]"],
+.dark [role="alertdialog"] [class~="text-[#172b4d]"],
+.dark [role="alertdialog"] [class~="text-[#2b2c35]"],
+.dark [role="menu"] [class~="text-[#172b4d]"],
+.dark [role="menu"] [class~="text-[#2b2c35]"] {
   color: #f1f2f4 !important;
 }
 
 .dark .board-theme [class~="text-[#44546f]"],
 .dark .board-theme [class~="text-[#626f86]"],
 .dark [role="dialog"] [class~="text-[#44546f]"],
-.dark [role="dialog"] [class~="text-[#626f86]"] {
+.dark [role="dialog"] [class~="text-[#626f86]"],
+.dark [role="alertdialog"] [class~="text-[#44546f]"],
+.dark [role="alertdialog"] [class~="text-[#626f86]"],
+.dark [role="menu"] [class~="text-[#44546f]"],
+.dark [role="menu"] [class~="text-[#626f86]"] {
   color: #b6c2cf !important;
 }

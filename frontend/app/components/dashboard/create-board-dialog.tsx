@@ -81,7 +81,7 @@ export function CreateBoardDialog({ title, cover, workspaceId, visibility, fromT
         <header className="sticky top-0 z-10 grid h-12 grid-cols-[40px_1fr_40px] items-center border-b border-[#dfe1e6] bg-white/95 px-2 backdrop-blur dark:border-[#454f59] dark:bg-[#22272b]/95">
           <span />
           <h2 id="create-board-title" className="text-center text-sm font-semibold">Create board</h2>
-          <button type="button" aria-label="Close create board" onClick={onClose} disabled={isSubmitting} className="flex h-8 w-8 items-center justify-center rounded-md text-[#44546f] hover:bg-[#091e420f] disabled:opacity-50"><Icon name="x" size={18} /></button>
+          <button type="button" aria-label="Close create board" onClick={onClose} disabled={isSubmitting} className="flex h-8 w-8 items-center justify-center rounded-md text-[#44546f] hover:bg-[#091e420f] disabled:opacity-50 dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"><Icon name="x" size={18} /></button>
         </header>
 
         <form onSubmit={submit} className="p-4">
@@ -92,7 +92,7 @@ export function CreateBoardDialog({ title, cover, workspaceId, visibility, fromT
           </div>
 
           <fieldset className="mt-5">
-            <legend className="text-xs font-semibold text-[#44546f]">Background</legend>
+            <legend className="text-xs font-semibold text-[#44546f] dark:text-[#b6c2cf]">Background</legend>
             <div className="mt-2 grid grid-cols-4 gap-2">
               {imageBackgrounds.map((background) => {
                 const selected = selectedCover === background.value;
@@ -107,20 +107,20 @@ export function CreateBoardDialog({ title, cover, workspaceId, visibility, fromT
             </div>
           </fieldset>
 
-          <label className="mt-5 block text-xs font-semibold text-[#44546f]">Board title <span className="text-[#c9372c]">*</span><input autoFocus value={title} onChange={(event) => onTitleChange(event.target.value)} maxLength={120} className="mt-2 h-10 w-full rounded-md border border-[#8590a2] bg-white px-3 text-sm outline-none transition focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/20" /></label>
-          {!title.trim() ? <p className="mt-1.5 text-xs text-[#626f86]">A board title is required.</p> : null}
-          {fromTemplate ? <p className="mt-2 rounded-md bg-[#e9f2ff] px-3 py-2 text-xs font-medium text-[#0c4a8a]">This template&apos;s lists and starter cards will be copied into the new board.</p> : null}
+          <label className="mt-5 block text-xs font-semibold text-[#44546f] dark:text-[#b6c2cf]">Board title <span className="text-[#c9372c] dark:text-[#ff8f73]">*</span><input autoFocus value={title} onChange={(event) => onTitleChange(event.target.value)} maxLength={120} className="mt-2 h-10 w-full rounded-md border border-[#8590a2] bg-white px-3 text-sm outline-none transition focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/20 dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#f1f2f4]" /></label>
+          {!title.trim() ? <p className="mt-1.5 text-xs text-[#626f86] dark:text-[#9fadbc]">A board title is required.</p> : null}
+          {fromTemplate ? <p className="mt-2 rounded-md bg-[#e9f2ff] px-3 py-2 text-xs font-medium text-[#0c4a8a] dark:bg-[#1c3d5d] dark:text-[#85b8ff]">This template&apos;s lists and starter cards will be copied into the new board.</p> : null}
 
-          <label className="mt-4 block text-xs font-semibold text-[#44546f]">Workspace<select value={workspaceId} onChange={(event) => onWorkspaceChange(event.target.value)} className="mt-2 h-10 w-full rounded-md border border-[#8590a2] bg-white px-3 text-sm outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/20"><option value="" disabled>Select a workspace</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
+          <label className="mt-4 block text-xs font-semibold text-[#44546f] dark:text-[#b6c2cf]">Workspace<select value={workspaceId} onChange={(event) => onWorkspaceChange(event.target.value)} className="mt-2 h-10 w-full rounded-md border border-[#8590a2] bg-white px-3 text-sm outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/20 dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#f1f2f4] dark:[color-scheme:dark]"><option value="" disabled>Select a workspace</option>{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name}</option>)}</select></label>
 
-          <label className="mt-4 block text-xs font-semibold text-[#44546f]">Visibility<select value={visibility} onChange={(event) => onVisibilityChange(event.target.value as typeof visibility)} className="mt-2 h-10 w-full rounded-md border border-[#8590a2] bg-white px-3 text-sm outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/20"><option value="private">Private</option><option value="workspace">Workspace</option><option value="public">Public</option></select></label>
-          <p className="mt-1.5 text-xs text-[#626f86]">{visibility === "private" ? "Only explicitly invited board members can access it." : visibility === "workspace" ? "All workspace members can discover and access it." : "Any signed-in user with the link can view it."}</p>
+          <label className="mt-4 block text-xs font-semibold text-[#44546f] dark:text-[#b6c2cf]">Visibility<select value={visibility} onChange={(event) => onVisibilityChange(event.target.value as typeof visibility)} className="mt-2 h-10 w-full rounded-md border border-[#8590a2] bg-white px-3 text-sm outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/20 dark:border-[#738496] dark:bg-[#1d2125] dark:text-[#f1f2f4] dark:[color-scheme:dark]"><option value="private">Private</option><option value="workspace">Workspace</option><option value="public">Public</option></select></label>
+          <p className="mt-1.5 text-xs text-[#626f86] dark:text-[#9fadbc]">{visibility === "private" ? "Only explicitly invited board members can access it." : visibility === "workspace" ? "All workspace members can discover and access it." : "Any signed-in user with the link can view it."}</p>
 
           {error ? <p role="alert" className="mt-4 rounded-md border border-[#f5cd47] bg-[#fff7d6] px-3 py-2 text-xs text-[#533f04]">{error}</p> : null}
 
           <button type="submit" disabled={!title.trim() || !workspaceId || isSubmitting} className="mt-5 h-10 w-full rounded-md bg-[#0c66e4] text-sm font-semibold text-white transition hover:bg-[#0055cc] disabled:cursor-not-allowed disabled:bg-[#091e4224] disabled:text-[#626f86]">{isSubmitting ? "Creating…" : "Create"}</button>
           <button type="button" onClick={onStartTemplate} disabled={isSubmitting} className="mt-2 h-10 w-full rounded-md border border-[#8590a2] bg-white text-sm font-semibold text-[#44546f] transition hover:bg-[#091e420f] disabled:opacity-50 dark:border-[#626f86] dark:bg-[#1d2125] dark:text-[#b6c2cf] dark:hover:bg-[#282e33]">Start with a template</button>
-          <p className="mt-3 text-xs leading-4 text-[#626f86]">Background images come from your generated template library. A default cover is always applied.</p>
+          <p className="mt-3 text-xs leading-4 text-[#626f86] dark:text-[#9fadbc]">Background images come from your generated template library. A default cover is always applied.</p>
         </form>
       </section>
     </div>

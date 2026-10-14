@@ -93,11 +93,11 @@ export function BoardActionsMenu({ boardId, title, archived = false, onRenamed, 
     <>
       <div ref={menuRef} className="absolute right-3 top-3 z-20">
         <button type="button" aria-label={`Board options for ${title}`} aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)} className="flex h-8 w-8 items-center justify-center rounded-md bg-black/35 text-white shadow-sm backdrop-blur-sm transition hover:bg-black/55"><Icon name="ellipsis" size={18} /></button>
-        {menuOpen ? <div role="menu" className="absolute right-0 top-10 w-48 rounded-lg border border-[#dfe1e6] bg-white p-1.5 text-sm text-[#172b4d] shadow-xl">
-          <button type="button" role="menuitem" onClick={() => { setNextTitle(title); setMenuOpen(false); setRenameOpen(true); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left hover:bg-[#f1f2f4]"><Pencil size={15} />Edit title</button>
-          <button type="button" role="menuitem" onClick={changeArchivedState} disabled={isSaving} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left hover:bg-[#f1f2f4] disabled:opacity-50"><Archive size={15} />{archived ? "Reopen board" : "Close board"}</button>
-          <div className="my-1 border-t border-[#dfe1e6]" />
-          <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setDeleteOpen(true); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[#c9372c] hover:bg-red-50"><Trash2 size={15} />Delete board</button>
+        {menuOpen ? <div role="menu" className="absolute right-0 top-10 w-48 rounded-lg border border-[#dfe1e6] bg-white p-1.5 text-sm text-[#172b4d] shadow-xl dark:border-[#454f59] dark:bg-[#282e33] dark:text-[#f1f2f4]">
+          <button type="button" role="menuitem" onClick={() => { setNextTitle(title); setMenuOpen(false); setRenameOpen(true); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left hover:bg-[#f1f2f4] dark:hover:bg-[#3b444c]"><Pencil size={15} />Edit title</button>
+          <button type="button" role="menuitem" onClick={changeArchivedState} disabled={isSaving} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left hover:bg-[#f1f2f4] disabled:opacity-50 dark:hover:bg-[#3b444c]"><Archive size={15} />{archived ? "Reopen board" : "Close board"}</button>
+          <div className="my-1 border-t border-[#dfe1e6] dark:border-[#454f59]" />
+          <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setDeleteOpen(true); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[#c9372c] hover:bg-red-50 dark:text-[#ff8f73] dark:hover:bg-red-950/40"><Trash2 size={15} />Delete board</button>
         </div> : null}
       </div>
 

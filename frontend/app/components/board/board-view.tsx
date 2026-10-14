@@ -362,31 +362,31 @@ function LabelPicker({ card, menuPosition, labels, onToggleLabel, onCreateLabel,
   return (
     <section ref={panelRef} className="fixed z-90 w-[min(340px,calc(100vw-32px))] rounded-xl border border-[#dcdfe4] bg-white p-4 text-[#172b4d] shadow-[0_22px_60px_rgba(21,19,31,0.35)] dark:border-[#454f59] dark:bg-[#282e33] dark:text-[#f1f2f4] md:w-[320px]" style={position} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
       <header className="grid h-8 grid-cols-[32px_1fr_32px] items-center">
-        {onBack ? <button type="button" aria-label="Back to add menu" title="Back" onClick={onBack} className="flex h-8 w-8 items-center justify-center rounded-md text-[#6b6c78] hover:bg-[#e9ebf0]"><ArrowLeft size={17} /></button> : <span />}
+        {onBack ? <button type="button" aria-label="Back to add menu" title="Back" onClick={onBack} className="flex h-8 w-8 items-center justify-center rounded-md text-[#6b6c78] hover:bg-[#e9ebf0] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"><ArrowLeft size={17} /></button> : <span />}
         <h3 className="text-center text-sm font-semibold">Labels</h3>
-        <button type="button" aria-label="Close label picker" title="Close" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-[#6b6c78] hover:bg-[#e9ebf0]"><X size={17} /></button>
+        <button type="button" aria-label="Close label picker" title="Close" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-[#6b6c78] hover:bg-[#e9ebf0] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c]"><X size={17} /></button>
       </header>
       <div className="relative mt-3">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#626f86]" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} autoFocus type="search" placeholder="Search labels..." className="h-10 w-full rounded-lg border border-[#b7bec8] bg-white pl-9 pr-3 text-sm outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-1 focus:ring-[#0c66e4]" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} autoFocus type="search" placeholder="Search labels..." className="h-10 w-full rounded-lg border border-[#b7bec8] bg-white pl-9 pr-3 text-sm outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-1 focus:ring-[#0c66e4] dark:border-[#738496] dark:bg-[#22272b] dark:text-[#f1f2f4] dark:placeholder:text-[#9fadbc]" />
       </div>
-      <p className="mt-4 text-xs font-semibold text-[#626f86]">Labels</p>
+      <p className="mt-4 text-xs font-semibold text-[#626f86] dark:text-[#9fadbc]">Labels</p>
       <div className="mt-2 space-y-2">
         {filteredLabels.map((item) => {
           const selected = card.labelIds?.includes(item.id) ?? false;
           return (
-            <div key={item.id} className="flex w-full items-center gap-3 rounded-lg text-left transition hover:bg-[#f0eef9]">
+            <div key={item.id} className="flex w-full items-center gap-3 rounded-lg text-left transition hover:bg-[#f0eef9] dark:hover:bg-[#3b444c]">
               <button type="button" onClick={() => onToggleLabel(card.id, item.id)} className="flex min-w-0 flex-1 items-center gap-3">
-                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${selected ? "border-[#0c66e4] bg-[#0c66e4] text-white shadow-sm" : "border-[#a9aab5] bg-white text-transparent"}`}><Check size={14} /></span>
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${selected ? "border-[#0c66e4] bg-[#0c66e4] text-white shadow-sm" : "border-[#a9aab5] bg-white text-transparent dark:border-[#738496] dark:bg-[#22272b]"}`}><Check size={14} /></span>
                 <span className="flex h-9 min-w-0 flex-1 items-center rounded-md px-3 text-sm font-semibold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]" style={{ backgroundColor: item.color }}>{item.name}</span>
               </button>
-              <button type="button" aria-label={`Edit ${item.name}`} title={`Edit ${item.name}`} onClick={() => onEditLabel(item.id, position)} className="flex h-9 w-9 items-center justify-center rounded-md text-[#5d5e6b] transition hover:bg-[#e9e7f4] hover:text-[#0c66e4]"><Pencil size={15} strokeWidth={1.8} /></button>
+              <button type="button" aria-label={`Edit ${item.name}`} title={`Edit ${item.name}`} onClick={() => onEditLabel(item.id, position)} className="flex h-9 w-9 items-center justify-center rounded-md text-[#5d5e6b] transition hover:bg-[#e9e7f4] hover:text-[#0c66e4] dark:text-[#b6c2cf] dark:hover:bg-[#3b444c] dark:hover:text-[#85b8ff]"><Pencil size={15} strokeWidth={1.8} /></button>
             </div>
           );
         })}
-        {filteredLabels.length === 0 ? <p className="py-4 text-center text-sm text-[#626f86]">No labels found</p> : null}
+        {filteredLabels.length === 0 ? <p className="py-4 text-center text-sm text-[#626f86] dark:text-[#9fadbc]">No labels found</p> : null}
       </div>
-      <button type="button" onClick={() => onCreateLabel(position)} className="mt-4 flex h-11 w-full items-center justify-center rounded-lg border border-[#d1d1dc] bg-[#f1f1f5] text-sm font-semibold text-[#3c3d48] transition hover:border-[#9586e5] hover:text-[#0c66e4]">Create a new label</button>
+      <button type="button" onClick={() => onCreateLabel(position)} className="mt-4 flex h-11 w-full items-center justify-center rounded-lg border border-[#d1d1dc] bg-[#f1f1f5] text-sm font-semibold text-[#3c3d48] transition hover:border-[#9586e5] hover:text-[#0c66e4] dark:border-[#454f59] dark:bg-[#22272b] dark:text-[#f1f2f4] dark:hover:border-[#579dff] dark:hover:text-[#85b8ff]">Create a new label</button>
     </section>
   );
 }
@@ -411,22 +411,22 @@ function LabelEditorModal({ initialLabel, position, onClose, onSave, onDelete }:
 
   return (
     <div className="fixed inset-0 z-120 bg-transparent p-4" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section ref={panelRef} className="absolute w-[min(320px,calc(100vw-32px))] overflow-hidden rounded-xl border border-[#dcdfe4] bg-white p-4 text-[#172b4d] shadow-[0_22px_60px_rgba(21,19,31,0.35)]" style={editorStyle} onPointerDown={(event) => event.stopPropagation()}>
+      <section ref={panelRef} className="absolute w-[min(320px,calc(100vw-32px))] overflow-hidden rounded-xl border border-[#dcdfe4] bg-white p-4 text-[#172b4d] shadow-[0_22px_60px_rgba(21,19,31,0.35)] dark:border-[#454f59] dark:bg-[#282e33] dark:text-[#f1f2f4]" style={editorStyle} onPointerDown={(event) => event.stopPropagation()}>
         <header className="grid grid-cols-[32px_1fr_32px] items-center">
           <button type="button" aria-label="Back to labels" title="Back" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-[#6b6c78] hover:bg-[#e9ebf0]"><ArrowLeft size={18} /></button>
-          <h3 className="text-center text-sm font-semibold text-[#172b4d]">{isNewLabel ? "Create label" : "Edit label"}</h3>
+          <h3 className="text-center text-sm font-semibold text-[#172b4d] dark:text-[#f1f2f4]">{isNewLabel ? "Create label" : "Edit label"}</h3>
           <button type="button" aria-label="Close label editor" title="Close" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-[#6b6c78] hover:bg-[#e9ebf0]"><X size={18} /></button>
         </header>
 
-        <div className="mt-4 rounded-lg bg-[#f4f4f8] p-4"><div className="h-10 rounded-md border border-black/5 shadow-sm" style={{ backgroundColor: selectedColor }} /></div>
+        <div className="mt-4 rounded-lg bg-[#f4f4f8] p-4 dark:bg-[#22272b]"><div className="h-10 rounded-md border border-black/5 shadow-sm" style={{ backgroundColor: selectedColor }} /></div>
 
-        <label className="mt-4 block text-xs font-semibold text-[#44546f]">
+        <label className="mt-4 block text-xs font-semibold text-[#44546f] dark:text-[#b6c2cf]">
           Title
-          <input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2 h-10 w-full rounded-lg border border-[#c8c8d3] bg-white px-3 text-sm font-medium text-[#172b4d] outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/15" placeholder="Label name" />
+          <input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2 h-10 w-full rounded-lg border border-[#c8c8d3] bg-white px-3 text-sm font-medium text-[#172b4d] outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/15 dark:border-[#738496] dark:bg-[#22272b] dark:text-[#f1f2f4] dark:placeholder:text-[#9fadbc]" placeholder="Label name" />
         </label>
 
         <div className="mt-4">
-          <p className="text-xs font-semibold text-[#44546f]">Select a color</p>
+          <p className="text-xs font-semibold text-[#44546f] dark:text-[#b6c2cf]">Select a color</p>
           <div className="mt-2 grid grid-cols-5 gap-2">
             {palette.map((color) => (
               <button key={color} type="button" aria-label={`Set color ${color}`} onClick={() => setSelectedColor(color)} className={`relative h-9 rounded-md border-2 transition hover:brightness-95 ${selectedColor === color ? "border-[#0c66e4] ring-2 ring-[#0c66e4]/15" : "border-transparent"}`} style={{ backgroundColor: color }}>
@@ -436,11 +436,11 @@ function LabelEditorModal({ initialLabel, position, onClose, onSave, onDelete }:
           </div>
         </div>
 
-        <button type="button" onClick={() => setSelectedColor("#d8d8df")} className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#cfced8] bg-[#f7f7f9] px-3 text-sm font-medium text-[#44546f] transition hover:border-[#9d8fe8] hover:text-[#0c66e4]">
+        <button type="button" onClick={() => setSelectedColor("#d8d8df")} className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#cfced8] bg-[#f7f7f9] px-3 text-sm font-medium text-[#44546f] transition hover:border-[#9d8fe8] hover:text-[#0c66e4] dark:border-[#454f59] dark:bg-[#22272b] dark:text-[#b6c2cf] dark:hover:border-[#579dff] dark:hover:text-[#85b8ff]">
           <X size={16} /> Remove color
         </button>
 
-        <div className="mt-5 flex items-center justify-between border-t border-[#e1e1e8] pt-4">
+        <div className="mt-5 flex items-center justify-between border-t border-[#e1e1e8] pt-4 dark:border-[#454f59]">
           <button type="button" onClick={() => { const trimmed = title.trim() || "New label"; onSave({ id: initialLabel?.id ?? `label-${Date.now()}`, name: trimmed, color: selectedColor }); }} className="h-10 rounded-lg bg-[#0c66e4] px-5 text-sm font-semibold text-white transition hover:bg-[#0055cc]">Save</button>
           {!isNewLabel && initialLabel && onDelete ? <button type="button" onClick={() => onDelete(initialLabel.id)} className="h-10 rounded-lg bg-[#e5574f] px-5 text-sm font-semibold text-white transition hover:bg-[#cc433c]">Delete</button> : null}
         </div>
@@ -559,22 +559,22 @@ function MemberPicker({ card, menuPosition, onToggleMember, onClose, onBack, pla
       </header>
       <div className="relative mt-3">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#626f86]" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} autoFocus type="search" placeholder="Search members" className="h-10 w-full rounded-lg border border-[#b7bec8] bg-white pl-9 pr-3 text-sm outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-1 focus:ring-[#0c66e4]" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} autoFocus type="search" placeholder="Search members" className="h-10 w-full rounded-lg border border-[#b7bec8] bg-white pl-9 pr-3 text-sm outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-1 focus:ring-[#0c66e4] dark:border-[#738496] dark:bg-[#22272b] dark:text-[#f1f2f4] dark:placeholder:text-[#9fadbc]" />
       </div>
-      <p className="mt-4 text-xs font-semibold text-[#626f86]">Board members</p>
+      <p className="mt-4 text-xs font-semibold text-[#626f86] dark:text-[#9fadbc]">Board members</p>
       <div className="mt-2 space-y-1">
         {filteredMembers.map((member) => {
           const assigned = card.memberIds?.includes(member.id) ?? false;
           return (
-            <button key={member.id} type="button" disabled={(member.role === "Owner" || card.creatorId === member.id) && assigned} title={(member.role === "Owner" || card.creatorId === member.id) && assigned ? "The card creator or board owner cannot be removed" : undefined} onClick={() => onToggleMember(card.id, member.id)} className="flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm transition hover:bg-[#e9ebf0] disabled:cursor-not-allowed disabled:bg-[#f5f5f7] disabled:opacity-75">
+            <button key={member.id} type="button" disabled={(member.role === "Owner" || card.creatorId === member.id) && assigned} title={(member.role === "Owner" || card.creatorId === member.id) && assigned ? "The card creator or board owner cannot be removed" : undefined} onClick={() => onToggleMember(card.id, member.id)} className="flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm transition hover:bg-[#e9ebf0] disabled:cursor-not-allowed disabled:bg-[#f5f5f7] disabled:opacity-75 dark:hover:bg-[#3b444c] dark:disabled:bg-[#22272b]">
               <span className={`flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold text-[#30313a] ${member.color}`}>{member.initials}</span>
               <span className="min-w-0 flex-1 truncate font-medium">{member.name}</span>
-              {member.role ? <span className="rounded bg-[#e9f2ff] px-2 py-1 text-[10px] font-semibold text-[#0c66e4]">{member.role}</span> : null}
+              {member.role ? <span className="rounded bg-[#e9f2ff] px-2 py-1 text-[10px] font-semibold text-[#0c66e4] dark:bg-[#1c3d5d] dark:text-[#85b8ff]">{member.role}</span> : null}
               {assigned ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0c66e4] text-white"><Check size={14} /></span> : null}
             </button>
           );
         })}
-        {filteredMembers.length === 0 ? <p className="py-4 text-center text-sm text-[#626f86]">No members found</p> : null}
+        {filteredMembers.length === 0 ? <p className="py-4 text-center text-sm text-[#626f86] dark:text-[#9fadbc]">No members found</p> : null}
       </div>
     </section>
   );
@@ -746,7 +746,7 @@ function BoardList({ list, lists, labels, canEdit, onAddCard, onRenameList, onAr
             }}
             autoFocus
             aria-label={`Rename ${list.title} list`}
-            className="h-8 min-w-0 flex-1 rounded-md border border-[#0c66e4] bg-white px-2 text-sm font-semibold text-[#2b2c35] outline-none ring-2 ring-[#0c66e4]/15"
+            className="h-8 min-w-0 flex-1 rounded-md border border-[#0c66e4] bg-white px-2 text-sm font-semibold text-[#2b2c35] outline-none ring-2 ring-[#0c66e4]/15 dark:border-[#579dff] dark:bg-[#22272b] dark:text-[#f1f2f4]"
           />
         ) : (
           <button
@@ -772,21 +772,21 @@ function BoardList({ list, lists, labels, canEdit, onAddCard, onRenameList, onAr
               setListTitle(list.title);
               setEditingTitle(true);
             }}
-            className="min-w-0 flex-1 truncate rounded-md px-1 py-1 text-left text-sm font-semibold text-[#2b2c35] hover:bg-black/5"
+            className="min-w-0 flex-1 truncate rounded-md px-1 py-1 text-left text-sm font-semibold text-[#2b2c35] hover:bg-black/5 dark:text-[#f1f2f4] dark:hover:bg-white/10"
             title={canEdit ? "Rename list" : list.title}
           >{list.title}</button>
         )}
-        {canEdit ? <button type="button" aria-label={`Open ${list.title} actions`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setListMenuOpen((open) => !open); }} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#626f86] hover:bg-black/10"><MoreHorizontal size={18} /></button> : null}
+        {canEdit ? <button type="button" aria-label={`Open ${list.title} actions`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setListMenuOpen((open) => !open); }} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#626f86] hover:bg-black/10 dark:text-[#b6c2cf] dark:hover:bg-white/10 dark:hover:text-[#f1f2f4]"><MoreHorizontal size={18} /></button> : null}
       </header>
-      {listMenuOpen ? <div role="menu" className="absolute right-2 top-11 z-50 w-52 rounded-lg border border-[#dcdfe4] bg-white p-2 text-sm text-[#172b4d] shadow-xl" onPointerDown={(event) => event.stopPropagation()}>
-        <button type="button" role="menuitem" onClick={() => { setAddAtTop(true); setAddingCard(true); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0]">Add card at top</button>
-        <button type="button" role="menuitem" onClick={() => { onCopyList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0]">Copy list</button>
-        <button type="button" role="menuitem" disabled={lists[0]?.id === list.id} onClick={() => { onMoveList(list.id, -1); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] disabled:opacity-40">Move left</button>
-        <button type="button" role="menuitem" disabled={lists.at(-1)?.id === list.id} onClick={() => { onMoveList(list.id, 1); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] disabled:opacity-40">Move right</button>
-        <button type="button" role="menuitem" onClick={() => { onSortList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0]">Sort by title</button>
-        <div className="my-1 border-t border-[#dcdfe4]" />
-        <button type="button" role="menuitem" onClick={() => { onArchiveList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0]">Archive list</button>
-        <button type="button" role="menuitem" onClick={() => { if (window.confirm(`Permanently delete “${list.title}” and all its cards?`)) onDeleteList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left text-[#c9372c] hover:bg-red-50">Delete list</button>
+      {listMenuOpen ? <div role="menu" className="absolute right-2 top-11 z-50 w-52 rounded-lg border border-[#dcdfe4] bg-white p-2 text-sm text-[#172b4d] shadow-xl dark:border-[#454f59] dark:bg-[#282e33] dark:text-[#f1f2f4]" onPointerDown={(event) => event.stopPropagation()}>
+        <button type="button" role="menuitem" onClick={() => { setAddAtTop(true); setAddingCard(true); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]">Add card at top</button>
+        <button type="button" role="menuitem" onClick={() => { onCopyList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]">Copy list</button>
+        <button type="button" role="menuitem" disabled={lists[0]?.id === list.id} onClick={() => { onMoveList(list.id, -1); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] disabled:opacity-40 dark:hover:bg-[#3b444c]">Move left</button>
+        <button type="button" role="menuitem" disabled={lists.at(-1)?.id === list.id} onClick={() => { onMoveList(list.id, 1); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] disabled:opacity-40 dark:hover:bg-[#3b444c]">Move right</button>
+        <button type="button" role="menuitem" onClick={() => { onSortList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]">Sort by title</button>
+        <div className="my-1 border-t border-[#dcdfe4] dark:border-[#454f59]" />
+        <button type="button" role="menuitem" onClick={() => { onArchiveList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]">Archive list</button>
+        <button type="button" role="menuitem" onClick={() => { if (window.confirm(`Permanently delete “${list.title}” and all its cards?`)) onDeleteList(list.id); setListMenuOpen(false); }} className="w-full rounded px-3 py-2 text-left text-[#c9372c] hover:bg-red-50 dark:text-[#ff8f73] dark:hover:bg-red-950/40">Delete list</button>
       </div> : null}
       <div className="relative min-h-0 flex-1">
         <div ref={scrollViewportRef} onScroll={() => {
@@ -821,16 +821,16 @@ function BoardList({ list, lists, labels, canEdit, onAddCard, onRenameList, onAr
             autoFocus
             rows={2}
             placeholder="Enter a title or paste a link"
-            className="min-h-18 w-full resize-none rounded-lg border border-[#d7d7e1] bg-white px-3 py-2.5 text-sm text-[#172b4d] shadow-sm outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/15"
+            className="min-h-18 w-full resize-none rounded-lg border border-[#d7d7e1] bg-white px-3 py-2.5 text-sm text-[#172b4d] shadow-sm outline-none placeholder:text-[#626f86] focus:border-[#0c66e4] focus:ring-2 focus:ring-[#0c66e4]/15 dark:border-[#738496] dark:bg-[#22272b] dark:text-[#f1f2f4] dark:placeholder:text-[#9fadbc]"
           />
           <div className="mt-2 flex items-center gap-2">
             <button type="submit" disabled={!newCardTitle.trim()} className="h-9 rounded-lg bg-[#0c66e4] px-4 text-sm font-semibold text-white transition hover:bg-[#0055cc] disabled:cursor-not-allowed disabled:opacity-45">Add card</button>
             <span title="Press Enter to add the card" className="flex h-9 items-center gap-1.5 rounded-lg bg-[#6f3294] px-3 text-sm font-semibold text-white"><Lightbulb size={16} /> Tip</span>
-            <button type="button" aria-label="Close add card" title="Close" onClick={() => { setAddingCard(false); setNewCardTitle(""); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-[#44546f] transition hover:bg-black/10 hover:text-[#172b4d]"><X size={19} /></button>
+            <button type="button" aria-label="Close add card" title="Close" onClick={() => { setAddingCard(false); setNewCardTitle(""); }} className="flex h-9 w-9 items-center justify-center rounded-lg text-[#44546f] transition hover:bg-black/10 hover:text-[#172b4d] dark:text-[#b6c2cf] dark:hover:bg-white/10 dark:hover:text-[#f1f2f4]"><X size={19} /></button>
           </div>
         </form>
       ) : (
-        <button type="button" onClick={() => { setAddAtTop(false); setAddingCard(true); }} className="mt-3 flex h-9 w-full shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#44546f] transition hover:bg-black/10 hover:text-[#0c66e4]">
+        <button type="button" onClick={() => { setAddAtTop(false); setAddingCard(true); }} className="mt-3 flex h-9 w-full shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#44546f] transition hover:bg-black/10 hover:text-[#0c66e4] dark:text-[#b6c2cf] dark:hover:bg-white/10 dark:hover:text-[#85b8ff]">
           <Icon name="plus" size={17} /> Add a card
         </button>
       )}

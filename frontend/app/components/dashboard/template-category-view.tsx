@@ -158,7 +158,7 @@ export function TemplateCategoryView({ categorySlug }: { categorySlug: string })
           <label className="relative hidden sm:block">
             <span className="sr-only">Find template</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Find template" className="h-11 w-[264px] rounded border border-[#dcdfe4] bg-white px-4 pr-10 text-sm text-[#172b4d] outline-none focus:border-[#0c66e4] dark:border-[#3d4145] dark:bg-[#22272b] dark:text-[#f1f2f4]" />
-            <Icon name="search" size={17} className="absolute right-3 top-3 text-[#626f86]" />
+            <Icon name="search" size={17} className="absolute right-3 top-3 text-[#626f86] dark:text-[#9fadbc]" />
           </label>
         </div>
 
@@ -178,7 +178,7 @@ export function TemplateCategoryView({ categorySlug }: { categorySlug: string })
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-center text-[#626f86]">
+          <div className="flex flex-col items-center justify-center py-24 text-center text-[#626f86] dark:text-[#9fadbc]">
             <Icon name="tasks" size={40} />
             <p className="mt-4 text-lg font-medium">No templates found</p>
             <p className="mt-1 text-sm">Try a different search in {title}.</p>

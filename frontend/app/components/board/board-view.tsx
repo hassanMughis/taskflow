@@ -726,7 +726,7 @@ function BoardList({ list, lists, labels, canEdit, onAddCard, onRenameList, onAr
   }, [list.cards]);
 
   return (
-    <section ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`relative grid h-fit max-h-full w-71.5 shrink-0 self-start grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-xl border bg-[#f1f2f4]/95 p-3 text-[#172b4d] shadow-[0_8px_24px_rgba(20,21,30,0.16)] backdrop-blur dark:bg-[#101214]/95 dark:text-[#f1f2f4] ${containsQuickMenu ? "z-40" : "z-0"} ${isDragging ? "opacity-25" : ""} ${isOver ? "border-[#1d7afc] ring-2 ring-[#1d7afc]/40" : "border-white/40 dark:border-[#454f59]"}`}>
+    <section ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`relative grid h-fit max-h-full w-71.5 shrink-0 self-start grid-rows-[auto_minmax(0,1fr)_auto] overflow-visible rounded-xl border bg-[#f1f2f4]/95 p-3 text-[#172b4d] shadow-[0_8px_24px_rgba(20,21,30,0.16)] backdrop-blur dark:bg-[#101214]/95 dark:text-[#f1f2f4] ${containsQuickMenu || listMenuOpen ? "z-40" : "z-0"} ${isDragging ? "opacity-25" : ""} ${isOver ? "border-[#1d7afc] ring-2 ring-[#1d7afc]/40" : "border-white/40 dark:border-[#454f59]"}`}>
       <header className={`mb-3 flex h-8 shrink-0 touch-none items-center justify-between px-1 ${canEdit ? "cursor-grab active:cursor-grabbing" : "cursor-default"}`} {...attributes} {...listeners}>
         {editingTitle ? (
           <input

@@ -2,6 +2,7 @@
 
 import {
   closestCorners,
+  type CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverEvent,
@@ -9,6 +10,7 @@ import {
   DragStartEvent,
   KeyboardSensor,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -102,6 +104,15 @@ function dragEntityId(id: string | number) {
   if (value.startsWith("list:")) return value.slice("list:".length);
   return value;
 }
+
+const boardCollisionDetection: CollisionDetection = (args) => {
+  // Large cover cards can overlap several lists. For pointer dragging, the
+  // destination under the cursor is the user's intent regardless of card size.
+  // Keyboard dragging has no pointer coordinates, so retain closestCorners as
+  // its fallback.
+  const pointerCollisions = pointerWithin(args);
+  return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
+};
 
 type BoardCardData = {
   id: string;
@@ -270,6 +281,7 @@ function CardContent({ id, title, labelIds, completed = false, aged = false, mem
                 src={cover}
                 alt=""
                 fill
+                draggable={false}
                 sizes="260px"
                 unoptimized={cover.startsWith("data:") || cover.startsWith("blob:")}
                 className={fullCover ? "object-cover" : "object-contain"}
@@ -655,7 +667,8 @@ function SortableCard({ card, currentList, lists, labels, canEdit, onToggleCompl
     <article
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, touchAction: "none" }}
-      className={`relative rounded-lg focus-visible:outline-none ${canEdit ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-25" : ""}`}
+      className={`relative select-none rounded-lg focus-visible:outline-none ${canEdit ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${isDragging ? "opacity-25" : ""}`}
+      onDragStart={(event) => event.preventDefault()}
       onClick={() => onOpenCard(card.id)}
       {...attributes}
       {...listeners}
@@ -2188,7 +2201,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
 
       {!canEditBoard ? <div className="relative z-10 border-b border-[#7f5f01] bg-[#fff7d6] px-4 py-2 text-center text-xs font-medium text-[#533f04] dark:bg-[#332e1b] dark:text-[#f5cd47]">View only — join this board&apos;s workspace to make changes.</div> : null}
 
-      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={boardCollisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
         <div className={`board-scrollbar relative z-10 min-h-0 flex-1 p-4 pb-20 md:p-5 md:pb-20 ${activeBoardView === "board" ? "flex items-start gap-4 overflow-x-auto overflow-y-hidden" : "overflow-auto"}`}>
           {activeBoardView === "board" ? <>
           <SortableContext items={lists.map((list) => listDragId(list.id))} strategy={horizontalListSortingStrategy}>

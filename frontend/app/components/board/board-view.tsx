@@ -1513,6 +1513,10 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   function handleDragOver(event: DragOverEvent) {
     if (!canEditBoard) return;
     if (event.active.data.current?.type === "list") return;
+    // A cover card can be taller than its destination list. Moving it during
+    // hover changes the list geometry and can make collision detection bounce
+    // between lists. Keep the board stable and commit this move on drop only.
+    if (event.active.data.current?.hasCover) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -2124,6 +2128,51 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     listsBeforeDrag.current = null;
     const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
     const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
+
+    if (active.data.current?.hasCover) {
+      const dragSnapshot = beforeDrag ?? lists;
+      const sourceListIndex = findListIndex(activeId, dragSnapshot);
+      const targetListIndex = findListIndex(overId, dragSnapshot);
+      if (sourceListIndex < 0 || targetListIndex < 0) return;
+
+      const nextLists = dragSnapshot.map((list) => ({ ...list, cards: [...list.cards] }));
+      const sourceCards = nextLists[sourceListIndex].cards;
+      const sourceCardIndex = sourceCards.findIndex((card) => card.id === activeId);
+      if (sourceCardIndex < 0) return;
+
+      const droppingOnList = over.data.current?.type === "list";
+      if (sourceListIndex === targetListIndex) {
+        const targetCardIndex = droppingOnList
+          ? sourceCards.length - 1
+          : sourceCards.findIndex((card) => card.id === overId);
+        if (targetCardIndex < 0 || targetCardIndex === sourceCardIndex) return;
+        nextLists[sourceListIndex].cards = arrayMove(sourceCards, sourceCardIndex, targetCardIndex);
+      } else {
+        const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
+        const targetCards = nextLists[targetListIndex].cards;
+        const targetCardIndex = droppingOnList
+          ? targetCards.length
+          : targetCards.findIndex((card) => card.id === overId);
+        targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
+      }
+
+      const destinationList = nextLists.find((list) => list.cards.some((card) => card.id === activeId));
+      const destinationPosition = destinationList?.cards.findIndex((card) => card.id === activeId) ?? -1;
+      const originalList = dragSnapshot.find((list) => list.cards.some((card) => card.id === activeId));
+      const originalPosition = originalList?.cards.findIndex((card) => card.id === activeId) ?? -1;
+      if (!destinationList || destinationPosition < 0) return;
+      if (destinationList.id === originalList?.id && destinationPosition === originalPosition) return;
+
+      setLists(nextLists);
+      apiPut(`/cards/${activeId}/move`, { listId: destinationList.id, position: destinationPosition })
+        .then(() => refreshBoardLists())
+        .catch((error) => {
+          setLists(dragSnapshot);
+          setRequestError(error instanceof Error ? error.message : "Failed to move card");
+        });
+      return;
+    }
+
     const sourceListIndex = findListIndex(activeId);
     const targetListIndex = findListIndex(overId);
 

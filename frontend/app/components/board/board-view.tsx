@@ -5,7 +5,6 @@ import {
   type CollisionDetection,
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   KeyboardSensor,
@@ -1521,36 +1520,6 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     }
   }
 
-  function handleDragOver(event: DragOverEvent) {
-    if (!canEditBoard) return;
-    if (event.active.data.current?.type === "list") return;
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
-    const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
-
-    setLists((currentLists) => {
-      const sourceListIndex = findListIndex(activeId, currentLists);
-      const targetListIndex = findListIndex(overId, currentLists);
-
-      if (sourceListIndex < 0 || targetListIndex < 0 || sourceListIndex === targetListIndex) {
-        return currentLists;
-      }
-
-      const nextLists = currentLists.map((list) => ({ ...list, cards: [...list.cards] }));
-      const sourceCards = nextLists[sourceListIndex].cards;
-      const sourceCardIndex = sourceCards.findIndex((card) => card.id === activeId);
-      if (sourceCardIndex < 0) return currentLists;
-
-      const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
-      const targetCards = nextLists[targetListIndex].cards;
-      const targetCardIndex = targetCards.findIndex((card) => card.id === overId);
-      targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
-      return nextLists;
-    });
-  }
-
   function handleDragCancel() {
     if (listsBeforeDrag.current) setLists(listsBeforeDrag.current);
     listsBeforeDrag.current = null;
@@ -2135,27 +2104,31 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     listsBeforeDrag.current = null;
     const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
     const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
-    const sourceListIndex = findListIndex(activeId);
-    const targetListIndex = findListIndex(overId);
+    const dragSnapshot = beforeDrag ?? lists;
+    const sourceListIndex = findListIndex(activeId, dragSnapshot);
+    const targetListIndex = findListIndex(overId, dragSnapshot);
 
     if (sourceListIndex < 0 || targetListIndex < 0) return;
 
-    const nextLists = lists.map((list) => ({ ...list, cards: [...list.cards] }));
-    if (activeId !== overId) {
-      const sourceCards = nextLists[sourceListIndex].cards;
-      const sourceCardIndex = sourceCards.findIndex((card) => card.id === activeId);
-      if (sourceCardIndex < 0) return;
+    const nextLists = dragSnapshot.map((list) => ({ ...list, cards: [...list.cards] }));
+    const sourceCards = nextLists[sourceListIndex].cards;
+    const sourceCardIndex = sourceCards.findIndex((card) => card.id === activeId);
+    if (sourceCardIndex < 0) return;
 
-      if (sourceListIndex === targetListIndex && overId !== nextLists[targetListIndex].id) {
-        const targetCardIndex = sourceCards.findIndex((card) => card.id === overId);
-        if (targetCardIndex < 0) return;
-        nextLists[sourceListIndex].cards = arrayMove(sourceCards, sourceCardIndex, targetCardIndex);
-      } else if (sourceListIndex !== targetListIndex) {
-        const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
-        const targetCards = nextLists[targetListIndex].cards;
-        const targetCardIndex = targetCards.findIndex((card) => card.id === overId);
-        targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
-      }
+    const droppingOnList = over.data.current?.type === "list";
+    if (sourceListIndex === targetListIndex) {
+      const targetCardIndex = droppingOnList
+        ? sourceCards.length - 1
+        : sourceCards.findIndex((card) => card.id === overId);
+      if (targetCardIndex < 0 || targetCardIndex === sourceCardIndex) return;
+      nextLists[sourceListIndex].cards = arrayMove(sourceCards, sourceCardIndex, targetCardIndex);
+    } else {
+      const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
+      const targetCards = nextLists[targetListIndex].cards;
+      const targetCardIndex = droppingOnList
+        ? targetCards.length
+        : targetCards.findIndex((card) => card.id === overId);
+      targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
     }
 
     const destinationList = nextLists.find((list) => list.cards.some((card) => card.id === activeId));
@@ -2220,7 +2193,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
 
       {!canEditBoard ? <div className="relative z-10 border-b border-[#7f5f01] bg-[#fff7d6] px-4 py-2 text-center text-xs font-medium text-[#533f04] dark:bg-[#332e1b] dark:text-[#f5cd47]">View only — join this board&apos;s workspace to make changes.</div> : null}
 
-      <DndContext sensors={sensors} collisionDetection={boardCollisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={boardCollisionDetection} onDragStart={handleDragStart} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
         <div className={`board-scrollbar relative z-10 min-h-0 flex-1 p-4 pb-20 md:p-5 md:pb-20 ${activeBoardView === "board" ? "flex items-start gap-4 overflow-x-auto overflow-y-hidden" : "overflow-auto"}`}>
           {activeBoardView === "board" ? <>
           <SortableContext items={lists.map((list) => listDragId(list.id))} strategy={horizontalListSortingStrategy}>

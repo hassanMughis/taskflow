@@ -1,15 +1,20 @@
 ﻿"use client";
 
 import {
-  closestCorners,
+  closestCenter,
   type CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
+  getFirstCollision,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
+  pointerWithin,
+  rectIntersection,
+  type UniqueIdentifier,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -56,7 +61,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { createPortal } from "react-dom";
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "../../lib/api-client";
@@ -103,58 +108,6 @@ function dragEntityId(id: string | number) {
   if (value.startsWith("list:")) return value.slice("list:".length);
   return value;
 }
-
-const boardCollisionDetection: CollisionDetection = (args) => {
-  const activeType = args.active.data.current?.type;
-  const listContainers = args.droppableContainers.filter((container) => container.data.current?.type === "list");
-
-  if (activeType === "list") {
-    return closestCorners({ ...args, droppableContainers: listContainers });
-  }
-
-  if (activeType !== "card" || !args.pointerCoordinates) return closestCorners(args);
-
-  // A board is organized in vertical list columns. Select the column from the
-  // pointer's x coordinate, independently of both the dragged card's height and
-  // the destination list's height. This makes one rule work for normal cards,
-  // tall cover cards, short lists, and empty lists.
-  const listRects = listContainers.flatMap((container) => {
-    const rect = args.droppableRects.get(container.id);
-    return rect ? [{ container, rect }] : [];
-  });
-  const pointerX = args.pointerCoordinates.x;
-  const targetList = listRects
-    .map((entry) => ({
-      ...entry,
-      distance: pointerX < entry.rect.left
-        ? entry.rect.left - pointerX
-        : pointerX > entry.rect.right
-          ? pointerX - entry.rect.right
-          : 0,
-    }))
-    .sort((first, second) => first.distance - second.distance)[0];
-
-  // Preserve a small bridge across the visual gap between neighboring lists,
-  // but do not select a list when the pointer has clearly left the board.
-  if (!targetList || targetList.distance > 24) return [];
-
-  const targetListId = String(targetList.container.data.current?.entityId ?? dragEntityId(targetList.container.id));
-  const cardsInTarget = args.droppableContainers
-    .filter((container) => (
-      container.id !== args.active.id
-      && container.data.current?.type === "card"
-      && String(container.data.current?.listId) === targetListId
-    ))
-    .flatMap((container) => {
-      const rect = args.droppableRects.get(container.id);
-      return rect ? [{ container, rect }] : [];
-    })
-    .sort((first, second) => first.rect.top - second.rect.top);
-
-  const targetCard = cardsInTarget.find(({ rect }) => args.pointerCoordinates!.y <= rect.top + rect.height / 2);
-  const target = targetCard?.container ?? targetList.container;
-  return [{ id: target.id, data: { droppableContainer: target, value: 0 } }];
-};
 
 type BoardCardData = {
   id: string;
@@ -1322,6 +1275,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   const [loadedBoardSlug, setLoadedBoardSlug] = useState<string | null>(null);
   const starAnimationTimerRef = useRef<number | null>(null);
   const listsBeforeDrag = useRef<BoardListData[] | null>(null);
+  const lastOverId = useRef<UniqueIdentifier | null>(null);
+  const recentlyMovedToNewList = useRef(false);
   const didDrag = useRef(false);
   const switcherDialogRef = useDialogFocus<HTMLElement>(boardSwitcherOpen);
   const helpDialogRef = useDialogFocus<HTMLElement>(helpOpen);
@@ -1329,6 +1284,80 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+  const boardCollisionDetection = useCallback<CollisionDetection>((args) => {
+    const listContainers = args.droppableContainers.filter((container) => container.data.current?.type === "list");
+
+    if (args.active.data.current?.type === "list") {
+      return closestCenter({ ...args, droppableContainers: listContainers });
+    }
+
+    // Keep the active sortable in the candidate set. Once a card is projected
+    // into a new list, matching that new slot prevents the sortable strategy
+    // from applying the same reorder a second time as a visual transform.
+    const candidates = args.droppableContainers;
+    const pointerIntersections = args.pointerCoordinates
+      ? pointerWithin({ ...args, droppableContainers: candidates })
+      : [];
+    const intersections = args.pointerCoordinates
+      ? pointerIntersections
+      : rectIntersection({ ...args, droppableContainers: candidates });
+
+    if (intersections.length > 0) {
+      // Prefer the card under the pointer over its containing list. Both are
+      // normally returned because our droppables are nested.
+      const directCardCollision = intersections.find((collision) => (
+        candidates.find((container) => container.id === collision.id)?.data.current?.type === "card"
+      ));
+      const matchedId = directCardCollision?.id ?? getFirstCollision(intersections, "id");
+      const matchedContainer = candidates.find((container) => container.id === matchedId);
+
+      if (matchedContainer) {
+        const targetListId = matchedContainer.data.current?.type === "list"
+          ? String(matchedContainer.data.current?.entityId ?? dragEntityId(matchedContainer.id))
+          : String(matchedContainer.data.current?.listId ?? "");
+        const targetListContainer = listContainers.find((container) => (
+          String(container.data.current?.entityId ?? dragEntityId(container.id)) === targetListId
+        ));
+
+        if (targetListContainer) {
+          const targetCards = candidates
+            .filter((container) => (
+              container.data.current?.type === "card"
+              && String(container.data.current?.listId) === targetListId
+            ))
+            .flatMap((container) => {
+              const rect = args.droppableRects.get(container.id);
+              return rect ? [{ container, rect }] : [];
+            })
+            .sort((first, second) => first.rect.top - second.rect.top);
+
+          let insertionTarget: UniqueIdentifier = targetListContainer.id;
+          if (targetCards.length > 0) {
+            if (args.pointerCoordinates) {
+              // The collision id represents an insertion slot: the first card
+              // whose midpoint is below the pointer, or the list to append.
+              insertionTarget = targetCards.find(({ rect }) => (
+                args.pointerCoordinates!.y < rect.top + rect.height / 2
+              ))?.container.id ?? targetListContainer.id;
+            } else {
+              insertionTarget = closestCenter({
+                ...args,
+                droppableContainers: targetCards.map(({ container }) => container),
+              })[0]?.id ?? targetListContainer.id;
+            }
+          }
+
+          lastOverId.current = insertionTarget;
+          return [{ id: insertionTarget }];
+        }
+      }
+    }
+
+    // Moving a card changes both source and destination heights. Retain a
+    // stable match for the frame in which dnd-kit is remeasuring that layout.
+    if (recentlyMovedToNewList.current) lastOverId.current = args.active.id;
+    return lastOverId.current ? [{ id: lastOverId.current }] : [];
+  }, []);
   const activeCard = lists.flatMap((list) => list.cards).find((card) => card.id === activeCardId);
   const activeList = lists.find((list) => list.id === activeListId);
   const selectedList = lists.find((list) => list.cards.some((card) => card.id === selectedCardId));
@@ -1387,6 +1416,13 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   useEffect(() => () => {
     if (starAnimationTimerRef.current !== null) window.clearTimeout(starAnimationTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      recentlyMovedToNewList.current = false;
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [lists]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1526,6 +1562,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   function handleDragStart(event: DragStartEvent) {
     if (!canEditBoard) return;
     didDrag.current = true;
+    lastOverId.current = null;
+    recentlyMovedToNewList.current = false;
     setQuickMenuCardId(null);
     setLabelMenuCardId(null);
     setMemberMenuCardId(null);
@@ -1556,7 +1594,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
       const sourceListIndex = findListIndex(activeId, currentLists);
       const targetListIndex = findListIndex(overId, currentLists);
 
-      if (sourceListIndex < 0 || targetListIndex < 0 || sourceListIndex === targetListIndex) {
+      if (sourceListIndex < 0 || targetListIndex < 0 || overId === activeId) {
         return currentLists;
       }
 
@@ -1568,7 +1606,14 @@ export function BoardView({ boardSlug }: BoardViewProps) {
       const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
       const targetCards = nextLists[targetListIndex].cards;
       const targetCardIndex = targetCards.findIndex((card) => card.id === overId);
+      if (sourceListIndex !== targetListIndex) recentlyMovedToNewList.current = true;
       targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
+
+      const orderChanged = nextLists.some((list, listIndex) => (
+        list.cards.length !== currentLists[listIndex].cards.length
+        || list.cards.some((card, cardIndex) => card.id !== currentLists[listIndex].cards[cardIndex]?.id)
+      ));
+      if (!orderChanged) return currentLists;
       return nextLists;
     });
   }
@@ -1576,6 +1621,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   function handleDragCancel() {
     if (listsBeforeDrag.current) setLists(listsBeforeDrag.current);
     listsBeforeDrag.current = null;
+    lastOverId.current = null;
+    recentlyMovedToNewList.current = false;
     setActiveCardId(null);
     setActiveListId(null);
     window.setTimeout(() => { didDrag.current = false; }, 0);
@@ -2135,6 +2182,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
 
     if (active.data.current?.type === "list") {
       listsBeforeDrag.current = null;
+      lastOverId.current = null;
+      recentlyMovedToNewList.current = false;
       if (!over || active.id === over.id) return;
       const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
       const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
@@ -2151,10 +2200,14 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     if (!over) {
       if (beforeDrag) setLists(beforeDrag);
       listsBeforeDrag.current = null;
+      lastOverId.current = null;
+      recentlyMovedToNewList.current = false;
       return;
     }
 
     listsBeforeDrag.current = null;
+    lastOverId.current = null;
+    recentlyMovedToNewList.current = false;
     const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
     const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
 
@@ -2169,16 +2222,14 @@ export function BoardView({ boardSlug }: BoardViewProps) {
       const sourceCardIndex = sourceCards.findIndex((card) => card.id === activeId);
       if (sourceCardIndex < 0) return;
 
-      if (sourceListIndex === targetListIndex && overId !== nextLists[targetListIndex].id) {
-        const targetCardIndex = sourceCards.findIndex((card) => card.id === overId);
-        if (targetCardIndex < 0) return;
-        nextLists[sourceListIndex].cards = arrayMove(sourceCards, sourceCardIndex, targetCardIndex);
-      } else if (sourceListIndex !== targetListIndex) {
-        const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
-        const targetCards = nextLists[targetListIndex].cards;
-        const targetCardIndex = targetCards.findIndex((card) => card.id === overId);
-        targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
-      }
+      // Collision detection returns an insertion slot. Remove the active card
+      // first, then insert it before the target card or append it to the list.
+      // This is identical for same-list ordering, cross-list moves, and empty
+      // lists, and avoids applying the cross-list preview a second time.
+      const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
+      const targetCards = nextLists[targetListIndex].cards;
+      const targetCardIndex = targetCards.findIndex((card) => card.id === overId);
+      targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
     }
 
     const destinationList = nextLists.find((list) => list.cards.some((card) => card.id === activeId));
@@ -2243,7 +2294,15 @@ export function BoardView({ boardSlug }: BoardViewProps) {
 
       {!canEditBoard ? <div className="relative z-10 border-b border-[#7f5f01] bg-[#fff7d6] px-4 py-2 text-center text-xs font-medium text-[#533f04] dark:bg-[#332e1b] dark:text-[#f5cd47]">View only — join this board&apos;s workspace to make changes.</div> : null}
 
-      <DndContext sensors={sensors} collisionDetection={boardCollisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={boardCollisionDetection}
+        measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragCancel={handleDragCancel}
+        onDragEnd={handleDragEnd}
+      >
         <div className={`board-scrollbar relative z-10 min-h-0 flex-1 p-4 pb-20 md:p-5 md:pb-20 ${activeBoardView === "board" ? "flex items-start gap-4 overflow-x-auto overflow-y-hidden" : "overflow-auto"}`}>
           {activeBoardView === "board" ? <>
           <SortableContext items={lists.map((list) => listDragId(list.id))} strategy={horizontalListSortingStrategy}>

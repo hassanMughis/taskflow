@@ -1463,10 +1463,16 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     };
   }, [quickMenuCardId]);
 
-  function findListIndex(itemId: string, boardLists = lists) {
-    return boardLists.findIndex(
-      (list) => list.id === itemId || list.cards.some((card) => card.id === itemId),
-    );
+  function findCardListIndex(cardId: string, boardLists = lists) {
+    return boardLists.findIndex((list) => list.cards.some((card) => card.id === cardId));
+  }
+
+  function findDropListIndex(itemId: string, itemType: unknown, boardLists = lists) {
+    // Card and list IDs come from independent database sequences, so the same
+    // raw number may identify both. The dnd item type must disambiguate them.
+    return itemType === "list"
+      ? boardLists.findIndex((list) => list.id === itemId)
+      : findCardListIndex(itemId, boardLists);
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -1499,8 +1505,8 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
 
     setLists((currentLists) => {
-      const sourceListIndex = findListIndex(activeId, currentLists);
-      const targetListIndex = findListIndex(overId, currentLists);
+      const sourceListIndex = findCardListIndex(activeId, currentLists);
+      const targetListIndex = findDropListIndex(overId, over.data.current?.type, currentLists);
 
       if (sourceListIndex < 0 || targetListIndex < 0 || sourceListIndex === targetListIndex) {
         return currentLists;
@@ -2085,7 +2091,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
       const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
       const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
       const sourceIndex = lists.findIndex((list) => list.id === activeId);
-      const targetIndex = lists.findIndex((list) => list.id === overId || list.cards.some((card) => card.id === overId));
+      const targetIndex = findDropListIndex(overId, over.data.current?.type);
       if (sourceIndex < 0 || targetIndex < 0) return;
       const nextLists = arrayMove(lists, sourceIndex, targetIndex);
       setLists(nextLists);
@@ -2103,18 +2109,18 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     listsBeforeDrag.current = null;
     const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
     const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
-    const sourceListIndex = findListIndex(activeId);
-    const targetListIndex = findListIndex(overId);
+    const sourceListIndex = findCardListIndex(activeId);
+    const targetListIndex = findDropListIndex(overId, over.data.current?.type);
 
     if (sourceListIndex < 0 || targetListIndex < 0) return;
 
     const nextLists = lists.map((list) => ({ ...list, cards: [...list.cards] }));
-    if (activeId !== overId) {
+    if (active.id !== over.id) {
       const sourceCards = nextLists[sourceListIndex].cards;
       const sourceCardIndex = sourceCards.findIndex((card) => card.id === activeId);
       if (sourceCardIndex < 0) return;
 
-      if (sourceListIndex === targetListIndex && overId !== nextLists[targetListIndex].id) {
+      if (sourceListIndex === targetListIndex && over.data.current?.type !== "list") {
         const targetCardIndex = sourceCards.findIndex((card) => card.id === overId);
         if (targetCardIndex < 0) return;
         nextLists[sourceListIndex].cards = arrayMove(sourceCards, sourceCardIndex, targetCardIndex);

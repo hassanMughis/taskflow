@@ -85,11 +85,15 @@ export const createBoard = async (req, res) => {
           position: listPosition,
         }, { transaction });
         if (templateList.cards.length) {
-          await Card.bulkCreate(templateList.cards.map((cardTitle, cardPosition) => ({
+          const templateCards = await Card.bulkCreate(templateList.cards.map((cardTitle, cardPosition) => ({
             listId: list.id,
             creatorId: req.user.id,
             title: cardTitle,
             position: cardPosition,
+          })), { transaction, returning: true });
+          await CardMember.bulkCreate(templateCards.map((card) => ({
+            cardId: card.id,
+            userId: req.user.id,
           })), { transaction });
         }
       }

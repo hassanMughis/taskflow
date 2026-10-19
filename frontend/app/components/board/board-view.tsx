@@ -2,6 +2,7 @@
 
 import {
   closestCorners,
+  type CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverEvent,
@@ -9,6 +10,7 @@ import {
   DragStartEvent,
   KeyboardSensor,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -102,6 +104,24 @@ function dragEntityId(id: string | number) {
   if (value.startsWith("list:")) return value.slice("list:".length);
   return value;
 }
+
+const boardCollisionDetection: CollisionDetection = (args) => {
+  // Keep the original behavior for lists and regular cards. A tall cover card
+  // needs pointer-based detection because its large rectangle cannot reliably
+  // collide with the corners of a short or empty list.
+  if (!args.active.data.current?.hasCover || !args.pointerCoordinates) {
+    return closestCorners(args);
+  }
+
+  const collisions = pointerWithin({
+    ...args,
+    droppableContainers: args.droppableContainers.filter((container) => container.id !== args.active.id),
+  });
+  const cardCollision = collisions.find(({ data }) => data?.droppableContainer.data.current?.type === "card");
+  if (cardCollision) return [cardCollision];
+  const listCollision = collisions.find(({ data }) => data?.droppableContainer.data.current?.type === "list");
+  return listCollision ? [listCollision] : [];
+};
 
 type BoardCardData = {
   id: string;
@@ -600,7 +620,7 @@ function MemberPicker({ card, menuPosition, onToggleMember, onClose, onBack, pla
 }
 
 function SortableCard({ card, currentList, lists, labels, canEdit, onToggleComplete, onToggleLabel, onToggleMember, onChangeCover, onUploadCover, onChangeDates, onMoveCard, onOpenCard, quickMenuOpen, labelMenuOpen, memberMenuOpen, coverMenuOpen, dateMenuOpen, moveMenuOpen, quickMenuPosition, onQuickEdit, onOpenLabelMenu, onOpenMemberMenu, onOpenCoverMenu, onOpenDateMenu, onOpenMoveMenu, onCloseLabelMenu, onCloseMemberMenu, onCloseCoverMenu, onCloseDateMenu, onCloseMoveMenu, onCloseQuickMenu, onOpenLabelEditor }: { card: BoardCardData; currentList: BoardListData; lists: BoardListData[]; labels: BoardLabel[]; canEdit: boolean; onToggleComplete: (cardId: string) => void; onToggleLabel: (cardId: string, labelId: string) => void; onToggleMember: (cardId: string, memberId: string) => void; onChangeCover: (cardId: string, update: CardCoverUpdate) => void; onUploadCover: (cardId: string, file: File) => void; onChangeDates: (cardId: string, update: CardDateUpdate) => void; onMoveCard: (cardId: string, listId: string, position: number) => void; onOpenCard: (cardId: string) => void; quickMenuOpen: boolean; labelMenuOpen: boolean; memberMenuOpen: boolean; coverMenuOpen: boolean; dateMenuOpen: boolean; moveMenuOpen: boolean; quickMenuPosition: MenuPosition | null; onQuickEdit: (cardId: string, position: MenuPosition) => void; onOpenLabelMenu: (cardId: string) => void; onOpenMemberMenu: (cardId: string) => void; onOpenCoverMenu: (cardId: string) => void; onOpenDateMenu: (cardId: string) => void; onOpenMoveMenu: (cardId: string) => void; onCloseLabelMenu: () => void; onCloseMemberMenu: () => void; onCloseCoverMenu: () => void; onCloseDateMenu: () => void; onCloseMoveMenu: () => void; onCloseQuickMenu: () => void; onOpenLabelEditor: (label: { id: string; name: string; color: string } | null, position: MenuPosition) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cardDragId(card.id), data: { type: "card", entityId: card.id }, disabled: !canEdit });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cardDragId(card.id), data: { type: "card", entityId: card.id, hasCover: Boolean(card.cover || card.coverColor) }, disabled: !canEdit });
   const [linkCopied, setLinkCopied] = useState(false);
   const coverPickerPosition = quickMenuPosition ? (() => {
     const popupWidth = Math.min(336, window.innerWidth - 32);
@@ -2189,7 +2209,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
 
       {!canEditBoard ? <div className="relative z-10 border-b border-[#7f5f01] bg-[#fff7d6] px-4 py-2 text-center text-xs font-medium text-[#533f04] dark:bg-[#332e1b] dark:text-[#f5cd47]">View only — join this board&apos;s workspace to make changes.</div> : null}
 
-      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={boardCollisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragCancel={handleDragCancel} onDragEnd={handleDragEnd}>
         <div className={`board-scrollbar relative z-10 min-h-0 flex-1 p-4 pb-20 md:p-5 md:pb-20 ${activeBoardView === "board" ? "flex items-start gap-4 overflow-x-auto overflow-y-hidden" : "overflow-auto"}`}>
           {activeBoardView === "board" ? <>
           <SortableContext items={lists.map((list) => listDragId(list.id))} strategy={horizontalListSortingStrategy}>

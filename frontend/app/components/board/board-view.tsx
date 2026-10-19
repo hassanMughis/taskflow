@@ -106,12 +106,31 @@ function dragEntityId(id: string | number) {
 }
 
 const boardCollisionDetection: CollisionDetection = (args) => {
-  // Large cover cards can overlap several lists. For pointer dragging, the
-  // destination under the cursor is the user's intent regardless of card size.
-  // Keyboard dragging has no pointer coordinates, so retain closestCorners as
-  // its fallback.
-  const pointerCollisions = pointerWithin(args);
-  return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
+  const activeType = args.active.data.current?.type;
+  const eligibleContainers = args.droppableContainers.filter((container) => (
+    container.id !== args.active.id && (activeType !== "list" || container.data.current?.type === "list")
+  ));
+
+  // Lists should only collide with other lists. Allowing their large rectangle
+  // to collide with child cards makes the horizontal list order jump around.
+  if (activeType === "list") {
+    return closestCorners({ ...args, droppableContainers: eligibleContainers });
+  }
+
+  // For pointer dragging, ignore the active card's sortable placeholder. It can
+  // sit under the pointer after a cross-list move and otherwise steal the drop
+  // target from the destination list. Prefer a card for precise ordering, then
+  // the containing list when the pointer is over empty list space.
+  if (args.pointerCoordinates) {
+    const pointerCollisions = pointerWithin({ ...args, droppableContainers: eligibleContainers });
+    const cardCollision = pointerCollisions.find(({ data }) => data?.droppableContainer.data.current?.type === "card");
+    if (cardCollision) return [cardCollision];
+    const listCollision = pointerCollisions.find(({ data }) => data?.droppableContainer.data.current?.type === "list");
+    return listCollision ? [listCollision] : [];
+  }
+
+  // Keyboard dragging has no pointer coordinates.
+  return closestCorners({ ...args, droppableContainers: eligibleContainers });
 };
 
 type BoardCardData = {

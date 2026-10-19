@@ -1236,10 +1236,6 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   const [workspaceBoardsOpen, setWorkspaceBoardsOpen] = useState(false);
   const [cardSearch, setCardSearch] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [filterMemberId, setFilterMemberId] = useState("");
-  const [filterLabelId, setFilterLabelId] = useState("");
-  const [filterDue, setFilterDue] = useState<"all" | "overdue" | "week" | "none">("all");
   const [shareCopied, setShareCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
@@ -1280,19 +1276,9 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   const workspaceBoards = searchedBoards.filter(([, details]) => details.workspace === board.workspace);
   const visibleBoards = boardScope === "workspace" ? workspaceBoards : searchedBoards;
   const normalizedCardSearch = cardSearch.trim().toLowerCase();
-  const hasCardFilters = Boolean(normalizedCardSearch || filterMemberId || filterLabelId || filterDue !== "all");
+  const hasCardSearch = Boolean(normalizedCardSearch);
   const filteredLists = lists.map((list) => ({ ...list, cards: list.cards.filter((card) => {
-    const matchesText = !normalizedCardSearch || `${card.title} ${card.description ?? ""} ${(card.comments ?? []).map((comment) => comment.text).join(" ")}`.toLowerCase().includes(normalizedCardSearch);
-    const matchesMember = !filterMemberId || card.memberIds?.includes(filterMemberId);
-    const matchesLabel = !filterLabelId || card.labelIds?.includes(filterLabelId);
-    let matchesDue = true;
-    if (filterDue === "none") matchesDue = !card.dueDate;
-    if ((filterDue === "overdue" || filterDue === "week") && card.dueDate) {
-      const due = new Date(`${card.dueDate}T23:59:59`).getTime();
-      const now = Date.now();
-      matchesDue = filterDue === "overdue" ? due < now && !card.completed : due >= now && due <= now + 7 * 86400000;
-    } else if ((filterDue === "overdue" || filterDue === "week") && !card.dueDate) matchesDue = false;
-    return matchesText && matchesMember && matchesLabel && matchesDue;
+    return !normalizedCardSearch || `${card.title} ${card.description ?? ""} ${(card.comments ?? []).map((comment) => comment.text).join(" ")}`.toLowerCase().includes(normalizedCardSearch);
   }) }));
   const filteredCardCount = filteredLists.reduce((count, list) => count + list.cards.length, 0);
 
@@ -1862,7 +1848,7 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   }
 
   function searchCards() {
-    setSearchMessage(hasCardFilters ? `${filteredCardCount} matching card${filteredCardCount === 1 ? "" : "s"}` : "Enter a search or choose a filter");
+    setSearchMessage(hasCardSearch ? `${filteredCardCount} matching card${filteredCardCount === 1 ? "" : "s"}` : "Enter a card search");
   }
 
   async function loadBoardMenuData() {
@@ -2177,7 +2163,6 @@ export function BoardView({ boardSlug }: BoardViewProps) {
         </div>
         <div className="ml-auto flex items-center gap-1.5">
           <div className="hidden -space-x-2 sm:flex">{boardMembers.filter((member) => boardMemberIds.has(member.id)).slice(0, 3).map((member) => <Avatar key={member.id} label={member.initials} />)}</div>
-          <button type="button" onClick={() => setFilterOpen((open) => !open)} aria-pressed={hasCardFilters} className={`flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${hasCardFilters ? "bg-[#e9f2ff] text-[#0c66e4] dark:bg-[#1c3d5d] dark:text-[#85b8ff]" : "bg-white/70 text-[#44546f] hover:bg-white dark:bg-[#3b444c] dark:text-[#b6c2cf] dark:hover:bg-[#454f59]"}`}><ListFilter size={16} /><span className="hidden sm:inline">Filter</span>{hasCardFilters ? <span className="rounded-full bg-[#0c66e4] px-1.5 text-[10px] text-white">{filteredCardCount}</span> : null}</button>
           <button type="button" onClick={() => { setShareError(null); setShareOpen(true); }} className="flex h-9 items-center gap-2 rounded-lg bg-[#0c66e4] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0055cc]"><Link2 size={16} /> <span className="hidden sm:inline">Share</span></button>
           <button type="button" onClick={openBoardMenu} aria-label="Open board menu" title="Board menu" className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/70 text-[#44546f] hover:bg-white dark:bg-[#3b444c] dark:text-[#b6c2cf] dark:hover:bg-[#454f59]"><MoreHorizontal size={19} /></button>
         </div>
@@ -2327,8 +2312,6 @@ export function BoardView({ boardSlug }: BoardViewProps) {
         {boardMenuTab === "power-ups" ? <section><h3 className="font-semibold">Power-Ups</h3><p className="mt-1 text-sm text-[#626f86] dark:text-[#9fadbc]">Add focused capabilities to this board.</p><div className="mt-5 flex items-center gap-3 rounded-lg border border-[#dcdfe4] p-4 dark:border-[#454f59]"><div className="min-w-0 flex-1"><h4 className="font-semibold">Card Aging</h4><p className="mt-1 text-xs text-[#626f86] dark:text-[#9fadbc]">Fade cards with no updates for seven days.</p></div><button type="button" onClick={() => togglePowerUp("card_aging")} disabled={!canManageBoard} aria-pressed={powerUps.card_aging} className={`rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-60 ${powerUps.card_aging ? "bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300" : "bg-[#e9ebf0] text-[#626f86] dark:bg-[#3b444c] dark:text-[#9fadbc]"}`}>{powerUps.card_aging ? "Enabled" : "Disabled"}</button></div>{!canManageBoard ? <p className="mt-4 text-xs text-[#626f86] dark:text-[#9fadbc]">Only board administrators can change Power-Ups.</p> : null}</section> : null}
         {boardMenuTab === "archived" ? <section><h3 className="font-semibold">Archived items</h3><h4 className="mt-5 text-xs font-semibold uppercase text-[#626f86] dark:text-[#9fadbc]">Cards</h4><div className="mt-2 space-y-2">{archivedCards.map((card) => <div key={card.id} className="flex items-center gap-2 rounded-lg border border-[#dcdfe4] p-3 dark:border-[#454f59]"><span className="min-w-0 flex-1 truncate text-sm">{card.title}</span><button type="button" onClick={() => restoreArchivedItem("card", card.id)} className="text-sm font-semibold text-[#0c66e4] dark:text-[#579dff]">Restore</button></div>)}{archivedCards.length === 0 ? <p className="text-sm text-[#626f86] dark:text-[#9fadbc]">No archived cards.</p> : null}</div><h4 className="mt-6 text-xs font-semibold uppercase text-[#626f86] dark:text-[#9fadbc]">Lists</h4><div className="mt-2 space-y-2">{archivedLists.map((list) => <div key={list.id} className="flex items-center gap-2 rounded-lg border border-[#dcdfe4] p-3 dark:border-[#454f59]"><span className="min-w-0 flex-1 truncate text-sm">{list.title}</span><button type="button" onClick={() => restoreArchivedItem("list", list.id)} className="text-sm font-semibold text-[#0c66e4] dark:text-[#579dff]">Restore</button></div>)}{archivedLists.length === 0 ? <p className="text-sm text-[#626f86] dark:text-[#9fadbc]">No archived lists.</p> : null}</div></section> : null}
       </div></aside></div>, document.body) : null}
-
-      {filterOpen ? createPortal(<div className="fixed inset-0 z-110" onPointerDown={(event) => { if (event.target === event.currentTarget) setFilterOpen(false); }}><aside role="dialog" aria-modal="true" aria-labelledby="filter-title" className="absolute right-4 top-[126px] w-[min(360px,calc(100vw-32px))] rounded-xl border border-[#dcdfe4] bg-white p-4 text-[#172b4d] shadow-2xl dark:border-[#454f59] dark:bg-[#282e33] dark:text-[#b6c2cf]"><header className="flex items-center justify-between"><h2 id="filter-title" className="font-semibold">Filter cards</h2><button type="button" aria-label="Close filters" onClick={() => setFilterOpen(false)} className="rounded p-1.5 hover:bg-[#e9ebf0] dark:hover:bg-[#3b444c]"><X size={18} /></button></header><label className="mt-4 block text-xs font-semibold">Member<select value={filterMemberId} onChange={(event) => setFilterMemberId(event.target.value)} className="mt-2 h-10 w-full rounded-md border border-[#b7bec8] bg-white px-3 text-sm dark:border-[#738496] dark:bg-[#22272b]"><option value="">Anyone</option>{boardMembers.filter((member) => boardMemberIds.has(member.id)).map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label><label className="mt-4 block text-xs font-semibold">Label<select value={filterLabelId} onChange={(event) => setFilterLabelId(event.target.value)} className="mt-2 h-10 w-full rounded-md border border-[#b7bec8] bg-white px-3 text-sm dark:border-[#738496] dark:bg-[#22272b]"><option value="">Any label</option>{boardLabels.map((label) => <option key={label.id} value={label.id}>{label.name || "Unnamed label"}</option>)}</select></label><label className="mt-4 block text-xs font-semibold">Due date<select value={filterDue} onChange={(event) => setFilterDue(event.target.value as typeof filterDue)} className="mt-2 h-10 w-full rounded-md border border-[#b7bec8] bg-white px-3 text-sm dark:border-[#738496] dark:bg-[#22272b]"><option value="all">Any date</option><option value="overdue">Overdue</option><option value="week">Due in the next week</option><option value="none">No due date</option></select></label><button type="button" onClick={() => { setCardSearch(""); setFilterMemberId(""); setFilterLabelId(""); setFilterDue("all"); setSearchMessage(""); }} disabled={!hasCardFilters} className="mt-5 h-10 w-full rounded-md bg-[#091e420f] text-sm font-semibold disabled:opacity-45 dark:bg-[#a1bdd914]">Clear filters</button></aside></div>, document.body) : null}
 
       {shareOpen ? createPortal(<BoardShareDialog workspaceId={board.workspaceId} members={boardMembers} boardMemberIds={boardMemberIds} ownerId={boardOwnerId} workspaceOwnerId={workspaceOwnerId} canManage={canManageBoard} busyMemberIds={busyBoardMemberIds} error={shareError} linkCopied={shareCopied} onToggleMember={toggleBoardAccess} onCopyLink={copyBoardLink} onClose={() => setShareOpen(false)} />, document.body) : null}
 

@@ -11,6 +11,17 @@ import { getBoardTemplate } from "../data/boardTemplates.js";
 
 const defaultLabelColors = ["#2f9c73", "#d9a400", "#df7b00", "#d14336", "#8f48b6", "#2667c9"];
 
+const ensureCardCreatorAssignments = async (boardId) => {
+  await sequelize.query(`
+    INSERT INTO card_members (card_id, user_id)
+    SELECT cards.id, cards.creator_id
+    FROM cards
+    JOIN lists ON lists.id = cards.list_id
+    WHERE lists.board_id = :boardId
+    ON CONFLICT (card_id, user_id) DO NOTHING
+  `, { replacements: { boardId } });
+};
+
 const uniqueSlug = async (title, transaction) => {
   const base = slugify(title) || "board";
   let slug = base;
@@ -85,16 +96,15 @@ export const createBoard = async (req, res) => {
           position: listPosition,
         }, { transaction });
         if (templateList.cards.length) {
-          const templateCards = await Card.bulkCreate(templateList.cards.map((cardTitle, cardPosition) => ({
-            listId: list.id,
-            creatorId: req.user.id,
-            title: cardTitle,
-            position: cardPosition,
-          })), { transaction, returning: true });
-          await CardMember.bulkCreate(templateCards.map((card) => ({
-            cardId: card.id,
-            userId: req.user.id,
-          })), { transaction });
+          for (const [cardPosition, cardTitle] of templateList.cards.entries()) {
+            const card = await Card.create({
+              listId: list.id,
+              creatorId: req.user.id,
+              title: cardTitle,
+              position: cardPosition,
+            }, { transaction });
+            await CardMember.create({ cardId: card.id, userId: req.user.id }, { transaction });
+          }
         }
       }
     }
@@ -120,6 +130,7 @@ export const getBoards = async (req, res) => {
 
 export const getBoard = async (req, res) => {
   const accessible = await findBoardForUser(req.params.boardId, req.user.id);
+  await ensureCardCreatorAssignments(accessible.id);
   const boardMembership = await BoardMember.findOne({ where: { boardId: accessible.id, userId: req.user.id } });
   const workspaceMembership = await WorkspaceMember.findOne({ where: { workspaceId: accessible.workspaceId, userId: req.user.id } });
   const isOwner = Number(accessible.ownerId) === Number(req.user.id);

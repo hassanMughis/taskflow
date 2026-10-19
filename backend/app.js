@@ -19,7 +19,11 @@ const app = express();
 const port = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: "7mb" }));
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/api/health", (req, res) => res.json({
+  status: "ok",
+  release: "template-card-owners-v2",
+  revision: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
+}));
 app.use("/api/auth", authRoutes); 
 app.use("/api/workspaces", workspaceRoutes);  
 app.use("/api/boards", boardRoutes);

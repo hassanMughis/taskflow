@@ -2138,8 +2138,10 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     if (destinationList.id === originalList?.id && destinationPosition === originalPosition) return;
 
     setLists(nextLists);
+    // The optimistic order is already final. Refetching the complete board here
+    // can overwrite a newer drop and retransfers large embedded cover images.
     apiPut(`/cards/${activeId}/move`, { listId: destinationList.id, position: destinationPosition })
-      .then(() => refreshBoardLists())
+      .then(() => setRequestError(null))
       .catch((error) => {
         if (beforeDrag) setLists(beforeDrag);
         setRequestError(error instanceof Error ? error.message : "Failed to move card");

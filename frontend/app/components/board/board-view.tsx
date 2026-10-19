@@ -10,7 +10,6 @@ import {
   DragStartEvent,
   KeyboardSensor,
   PointerSensor,
-  pointerWithin,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -106,21 +105,55 @@ function dragEntityId(id: string | number) {
 }
 
 const boardCollisionDetection: CollisionDetection = (args) => {
-  // Keep the original behavior for lists and regular cards. A tall cover card
-  // needs pointer-based detection because its large rectangle cannot reliably
-  // collide with the corners of a short or empty list.
-  if (!args.active.data.current?.hasCover || !args.pointerCoordinates) {
-    return closestCorners(args);
+  const activeType = args.active.data.current?.type;
+  const listContainers = args.droppableContainers.filter((container) => container.data.current?.type === "list");
+
+  if (activeType === "list") {
+    return closestCorners({ ...args, droppableContainers: listContainers });
   }
 
-  const collisions = pointerWithin({
-    ...args,
-    droppableContainers: args.droppableContainers.filter((container) => container.id !== args.active.id),
+  if (activeType !== "card" || !args.pointerCoordinates) return closestCorners(args);
+
+  // A board is organized in vertical list columns. Select the column from the
+  // pointer's x coordinate, independently of both the dragged card's height and
+  // the destination list's height. This makes one rule work for normal cards,
+  // tall cover cards, short lists, and empty lists.
+  const listRects = listContainers.flatMap((container) => {
+    const rect = args.droppableRects.get(container.id);
+    return rect ? [{ container, rect }] : [];
   });
-  const cardCollision = collisions.find(({ data }) => data?.droppableContainer.data.current?.type === "card");
-  if (cardCollision) return [cardCollision];
-  const listCollision = collisions.find(({ data }) => data?.droppableContainer.data.current?.type === "list");
-  return listCollision ? [listCollision] : [];
+  const pointerX = args.pointerCoordinates.x;
+  const targetList = listRects
+    .map((entry) => ({
+      ...entry,
+      distance: pointerX < entry.rect.left
+        ? entry.rect.left - pointerX
+        : pointerX > entry.rect.right
+          ? pointerX - entry.rect.right
+          : 0,
+    }))
+    .sort((first, second) => first.distance - second.distance)[0];
+
+  // Preserve a small bridge across the visual gap between neighboring lists,
+  // but do not select a list when the pointer has clearly left the board.
+  if (!targetList || targetList.distance > 24) return [];
+
+  const targetListId = String(targetList.container.data.current?.entityId ?? dragEntityId(targetList.container.id));
+  const cardsInTarget = args.droppableContainers
+    .filter((container) => (
+      container.id !== args.active.id
+      && container.data.current?.type === "card"
+      && String(container.data.current?.listId) === targetListId
+    ))
+    .flatMap((container) => {
+      const rect = args.droppableRects.get(container.id);
+      return rect ? [{ container, rect }] : [];
+    })
+    .sort((first, second) => first.rect.top - second.rect.top);
+
+  const targetCard = cardsInTarget.find(({ rect }) => args.pointerCoordinates!.y <= rect.top + rect.height / 2);
+  const target = targetCard?.container ?? targetList.container;
+  return [{ id: target.id, data: { droppableContainer: target, value: 0 } }];
 };
 
 type BoardCardData = {
@@ -620,7 +653,7 @@ function MemberPicker({ card, menuPosition, onToggleMember, onClose, onBack, pla
 }
 
 function SortableCard({ card, currentList, lists, labels, canEdit, onToggleComplete, onToggleLabel, onToggleMember, onChangeCover, onUploadCover, onChangeDates, onMoveCard, onOpenCard, quickMenuOpen, labelMenuOpen, memberMenuOpen, coverMenuOpen, dateMenuOpen, moveMenuOpen, quickMenuPosition, onQuickEdit, onOpenLabelMenu, onOpenMemberMenu, onOpenCoverMenu, onOpenDateMenu, onOpenMoveMenu, onCloseLabelMenu, onCloseMemberMenu, onCloseCoverMenu, onCloseDateMenu, onCloseMoveMenu, onCloseQuickMenu, onOpenLabelEditor }: { card: BoardCardData; currentList: BoardListData; lists: BoardListData[]; labels: BoardLabel[]; canEdit: boolean; onToggleComplete: (cardId: string) => void; onToggleLabel: (cardId: string, labelId: string) => void; onToggleMember: (cardId: string, memberId: string) => void; onChangeCover: (cardId: string, update: CardCoverUpdate) => void; onUploadCover: (cardId: string, file: File) => void; onChangeDates: (cardId: string, update: CardDateUpdate) => void; onMoveCard: (cardId: string, listId: string, position: number) => void; onOpenCard: (cardId: string) => void; quickMenuOpen: boolean; labelMenuOpen: boolean; memberMenuOpen: boolean; coverMenuOpen: boolean; dateMenuOpen: boolean; moveMenuOpen: boolean; quickMenuPosition: MenuPosition | null; onQuickEdit: (cardId: string, position: MenuPosition) => void; onOpenLabelMenu: (cardId: string) => void; onOpenMemberMenu: (cardId: string) => void; onOpenCoverMenu: (cardId: string) => void; onOpenDateMenu: (cardId: string) => void; onOpenMoveMenu: (cardId: string) => void; onCloseLabelMenu: () => void; onCloseMemberMenu: () => void; onCloseCoverMenu: () => void; onCloseDateMenu: () => void; onCloseMoveMenu: () => void; onCloseQuickMenu: () => void; onOpenLabelEditor: (label: { id: string; name: string; color: string } | null, position: MenuPosition) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cardDragId(card.id), data: { type: "card", entityId: card.id, hasCover: Boolean(card.cover || card.coverColor) }, disabled: !canEdit });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cardDragId(card.id), data: { type: "card", entityId: card.id, listId: currentList.id }, disabled: !canEdit });
   const [linkCopied, setLinkCopied] = useState(false);
   const coverPickerPosition = quickMenuPosition ? (() => {
     const popupWidth = Math.min(336, window.innerWidth - 32);
@@ -1513,10 +1546,6 @@ export function BoardView({ boardSlug }: BoardViewProps) {
   function handleDragOver(event: DragOverEvent) {
     if (!canEditBoard) return;
     if (event.active.data.current?.type === "list") return;
-    // A cover card can be taller than its destination list. Moving it during
-    // hover changes the list geometry and can make collision detection bounce
-    // between lists. Keep the board stable and commit this move on drop only.
-    if (event.active.data.current?.hasCover) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -2128,50 +2157,6 @@ export function BoardView({ boardSlug }: BoardViewProps) {
     listsBeforeDrag.current = null;
     const activeId = String(active.data.current?.entityId ?? dragEntityId(active.id));
     const overId = String(over.data.current?.entityId ?? dragEntityId(over.id));
-
-    if (active.data.current?.hasCover) {
-      const dragSnapshot = beforeDrag ?? lists;
-      const sourceListIndex = findListIndex(activeId, dragSnapshot);
-      const targetListIndex = findListIndex(overId, dragSnapshot);
-      if (sourceListIndex < 0 || targetListIndex < 0) return;
-
-      const nextLists = dragSnapshot.map((list) => ({ ...list, cards: [...list.cards] }));
-      const sourceCards = nextLists[sourceListIndex].cards;
-      const sourceCardIndex = sourceCards.findIndex((card) => card.id === activeId);
-      if (sourceCardIndex < 0) return;
-
-      const droppingOnList = over.data.current?.type === "list";
-      if (sourceListIndex === targetListIndex) {
-        const targetCardIndex = droppingOnList
-          ? sourceCards.length - 1
-          : sourceCards.findIndex((card) => card.id === overId);
-        if (targetCardIndex < 0 || targetCardIndex === sourceCardIndex) return;
-        nextLists[sourceListIndex].cards = arrayMove(sourceCards, sourceCardIndex, targetCardIndex);
-      } else {
-        const [movedCard] = sourceCards.splice(sourceCardIndex, 1);
-        const targetCards = nextLists[targetListIndex].cards;
-        const targetCardIndex = droppingOnList
-          ? targetCards.length
-          : targetCards.findIndex((card) => card.id === overId);
-        targetCards.splice(targetCardIndex < 0 ? targetCards.length : targetCardIndex, 0, movedCard);
-      }
-
-      const destinationList = nextLists.find((list) => list.cards.some((card) => card.id === activeId));
-      const destinationPosition = destinationList?.cards.findIndex((card) => card.id === activeId) ?? -1;
-      const originalList = dragSnapshot.find((list) => list.cards.some((card) => card.id === activeId));
-      const originalPosition = originalList?.cards.findIndex((card) => card.id === activeId) ?? -1;
-      if (!destinationList || destinationPosition < 0) return;
-      if (destinationList.id === originalList?.id && destinationPosition === originalPosition) return;
-
-      setLists(nextLists);
-      apiPut(`/cards/${activeId}/move`, { listId: destinationList.id, position: destinationPosition })
-        .then(() => refreshBoardLists())
-        .catch((error) => {
-          setLists(dragSnapshot);
-          setRequestError(error instanceof Error ? error.message : "Failed to move card");
-        });
-      return;
-    }
 
     const sourceListIndex = findListIndex(activeId);
     const targetListIndex = findListIndex(overId);
